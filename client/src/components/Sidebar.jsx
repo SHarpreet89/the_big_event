@@ -69,7 +69,7 @@ const Sidebar = ({ userRole, clientName, unreadMessages }) => {
         
         {userRole === 'Planner' && (
           <div className="mt-auto">
-            <Link to="/settings" className={iconContainerClass}>
+            <Link to="/PlannerSettings" className={iconContainerClass}>
               <Button variant="ghost" className="p-0 w-full h-full flex items-center justify-start">
                 <FiSettings style={iconStyle} className="mx-4" />
                 {!isCollapsed && <span>Settings</span>}

@@ -1,39 +1,93 @@
 const typeDefs = `
   type User {
-    _id: ID!
+    id: ID!
     username: String!
-    email: String
+    email: String!
+    phone: String
+    password: String!
     role: String!
+    events: [Event!]
+  }
+
+  type Client {
+    id: ID!
+    name: String!
+    planner: User
     events: [Event]
+    notes: [String]
+    requestList: [Request]
+    actionedRequestList: [ActionedRequest]
+  }
+
+  type Request {
+    item: String!
+    description: String
+  }
+
+  type ActionedRequest {
+    item: String!
+    status: String!
+    actionedBy: User
+    actionedAt: String
   }
 
   type Event {
-    _id: ID!
-    planner: User! 
+    id: ID!
+    name: String!
     description: String
-    title: String!
-    startDate: String!
+    startDate: String!  # This replaces 'date'
     endDate: String!
-    location: String 
+    location: String!
+    planner: User
+    clients: [Client]
+    createdAt: String
+    completedAt: String
   }
 
-  type AuthPayload {   # New AuthPayload type to return token and user
+  type Planner {
+    id: ID!
+    name: String!
+    events: [Event]
+    clients: [Client]
+  }
+
+  type AuthPayload {
     token: String!
     user: User!
   }
 
+  type CreateClientResponse {
+    user: User
+    client: Client
+  }
+
   type Query {
     me: User
-    users: [User!] 
+    users: [User!]
     user(id: ID!): User
-    events: [Event!] 
+    clients: [Client!]
+    client(id: ID!): Client
+    events: [Event!]
     event(id: ID!): Event
+    planners: [Planner!]
+    planner(id: ID!): Planner
   }
 
   type Mutation {
     createUser(username: String!, email: String!, password: String!, role: String!): User
-    login(email: String!, password: String!): AuthPayload  # Updated login mutation
-    createEvent(title: String!, description: String, startDate: String!, endDate: String!, plannerId: ID!): Event
+    createClient(name: String!, email: String!, phone: String, password: String!, plannerId: ID, eventId: ID): CreateClientResponse
+    assignClientToPlannerAndEvent(clientId: ID!, plannerId: ID, eventId: ID): Client
+    login(email: String!, password: String!): AuthPayload
+    createEvent(
+      name: String!,
+      description: String,
+      startDate: String!,
+      endDate: String!,
+      location: String!,
+      plannerId: ID,
+      clientId: ID
+    ): Event
+    createPlanner(name: String!): Planner!
   }
 `;
 

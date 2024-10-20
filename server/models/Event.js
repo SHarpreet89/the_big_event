@@ -5,25 +5,28 @@ const eventSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  date: {
+  description: {
+    type: String,
+  },
+  startDate: { // Update to startDate
+    type: Date,
+    required: true,
+  },
+  endDate: {
     type: Date,
     required: true,
   },
   location: {
     type: String,
-    required: true,
   },
   planner: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Planner', // Reference to the Planner model
-    required: true,
+    ref: 'User',
   },
-  clients: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Client', // Reference to the Client model
-    },
-  ],
+  clients: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Client',
+  }],
   createdAt: {
     type: Date,
     default: Date.now,

@@ -14,7 +14,7 @@ const LocationPicker = ({ value, onChange }) => {
   const handleMapClick = (event) => {
     const [longitude, latitude] = event.lngLat;
     setSelectedLocation({ longitude, latitude });
-    onChange({ longitude, latitude });
+    onChange({ longitude, latitude }); // Send the picked location to the parent via onChange
   };
 
   return (

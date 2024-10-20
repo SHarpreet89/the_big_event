@@ -8,7 +8,7 @@ import PlannerDashboard from "./pages/PlannerDashboard.jsx";
 import EventDetails from "./pages/EventDetails";
 import ClientDashboard from "./pages/ClientDashboard";
 import Logout from "./pages/Logout";
-import PlannerSettings from "./pages/PlannerSettings"; // Ensure this import is correct
+import PlannerSettings from './pages/PlannerSettings.jsx'; // Ensure this import is correct
 
 const router = createBrowserRouter([
   {
@@ -41,7 +41,7 @@ const router = createBrowserRouter([
         element: <Logout />,
       },
       {
-        path: "settings",
+        path: "PlannerSettings",
         element: <PlannerSettings />, // Ensure this route is correctly defined
       },
     ],
