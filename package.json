@@ -8,7 +8,7 @@
     "dev": "concurrently \"npm run server\" \"cd client && npm run dev\"",
     "server": "nodemon server/server.js",
     "watch": "node server.js",
-    "build": "cd client && npm install && npm run build && cd ../server && npm install"
+    "build": "npm install && cd client && npm install && npm run build && cd ../server && npm install"
   },
   "dependencies": {
     "apollo-server": "^3.13.0",
