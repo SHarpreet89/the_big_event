@@ -9,6 +9,7 @@ import {
 import { setContext } from '@apollo/client/link/context';
 
 import Navbar from './components/Navbar';
+import Sidebar from './components/Sidebar'; // Import the Sidebar component
 
 // Construct our main GraphQL API endpoint
 const httpLink = createHttpLink({
@@ -37,8 +38,20 @@ const client = new ApolloClient({
 function App() {
   return (
     <ApolloProvider client={client}>
-      <Navbar />
-      <Outlet />
+      <div className="flex h-screen">
+        <Sidebar /> {/* Add the Sidebar component here */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <Navbar />
+          <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-200">
+            <div className="container mx-auto px-6 py-8">
+              <h1 className="text-3xl font-bold underline">
+                Hello world!
+              </h1>
+              <Outlet />
+            </div>
+          </main>
+        </div>
+      </div>
     </ApolloProvider>
   );
 }
