@@ -1,11 +1,15 @@
 import ReactDOM from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
+import "./index.css";
 import App from "./App.jsx";
 import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
+import PlannerDashboard from "./pages/PlannerDashboard.jsx";
 import EventDetails from "./pages/EventDetails";
 import ClientDashboard from "./pages/ClientDashboard";
+import Logout from "./pages/Logout";
+import PlannerSettings from "./pages/PlannerSettings"; // Ensure this import is correct
+
 const router = createBrowserRouter([
   {
     path: "/",
@@ -14,24 +18,35 @@ const router = createBrowserRouter([
     children: [
       {
         index: true,
-        path: "/login",
         element: <Login />,
       },
       {
-        path: "/dashboard",
-        element: <Dashboard />,
+        path: "login",
+        element: <Login />,
       },
       {
-        path: "/eventdetails",
+        path: "planner-dashboard",
+        element: <PlannerDashboard />,
+      },
+      {
+        path: "eventdetails",
         element: <EventDetails />,
       },
       {
-        path: "/clientdashboard",
+        path: "client-dashboard",
         element: <ClientDashboard />,
+      },
+      {
+        path: "logout",
+        element: <Logout />,
+      },
+      {
+        path: "settings",
+        element: <PlannerSettings />, // Ensure this route is correctly defined
       },
     ],
   },
 ]);
-ReactDOM.createRoot(document.getElementById("root")).render(
-  <RouterProvider router={router} />
-);
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<RouterProvider router={router} />);

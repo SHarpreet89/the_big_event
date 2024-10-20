@@ -1,7 +1,9 @@
 /** @type {import('tailwindcss').Config} */
 export default {
     darkMode: ["class"],
-    content: [],
+    content: [
+		'./src/**/*.{js,jsx,ts,tsx}', 
+	  ],
   theme: {
   	extend: {
   		borderRadius: {
@@ -16,9 +18,9 @@ export default {
   				DEFAULT: 'hsl(var(--card))',
   				foreground: 'hsl(var(--card-foreground))'
   			},
-  			popover: {
-  				DEFAULT: 'hsl(var(--popover))',
-  				foreground: 'hsl(var(--popover-foreground))'
+  			Popover: {
+  				DEFAULT: 'hsl(var(--Popover))',
+  				foreground: 'hsl(var(--Popover-foreground))'
   			},
   			primary: {
   				DEFAULT: 'hsl(var(--primary))',

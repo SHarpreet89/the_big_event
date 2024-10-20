@@ -1,43 +1,38 @@
-const { Schema, model } = require("mongoose");
-const userSchema = require("./User"); // Assuming you are using it for reference
-// You may not need to include clientSchema if not used
+const mongoose = require('mongoose');
 
-const eventSchema = new Schema(
-  {
-    title: {
-      type: String,
-      required: true,
-    },
-    description: {
-      type: String,
-    },
-    location: {
-      type: String,
-    },
-    startDate: {
-      type: String,
-    },
-    endDate: {
-      type: String,
-    },
-    planner: {
-      type: userSchema,
-      required: true,
-    },
-    // If you plan to use Client, you should update accordingly.
-    // clients: [
-    //   {
-    //     type: Schema.Types.ObjectId,
-    //     ref: "Client",
-    //   },
-    // ],
+const eventSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true,
   },
-  {
-    toJSON: {
-      virtuals: true,
+  date: {
+    type: Date,
+    required: true,
+  },
+  location: {
+    type: String,
+    required: true,
+  },
+  planner: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Planner', // Reference to the Planner model
+    required: true,
+  },
+  clients: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Client', // Reference to the Client model
     },
-  }
-);
+  ],
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
+  completedAt: {
+    type: Date,
+  },
+});
 
-const Event = model("Event", eventSchema);
+const Event = mongoose.model('Event', eventSchema);
+
 module.exports = Event;
