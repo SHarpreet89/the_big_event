@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import moment from 'moment';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import Carousel from 'react-multi-carousel';
@@ -32,7 +32,7 @@ function PlannerDashboard() {
   return (
     <div className="PlannerDashboard">
       <div className="top-section">
-        <h1>Welcome to The Big Event - Planner's Name</h1>
+        <h1>Welcome to The Big Event - Planner Name</h1>
       </div>
       <div className="middle-section">
         <Timeline events={events} setEvents={setEvents} />
