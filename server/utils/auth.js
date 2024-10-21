@@ -1,39 +1,58 @@
-const jwt = require('jsonwebtoken');
-const { GraphQLError } = require('graphql');
+import jwt from 'jsonwebtoken';
+import { GraphQLError } from 'graphql';
+import bcrypt from 'bcrypt';
+import { User } from '../models/models.js';
+
 const secret = 'mysecretsshhhhh';
 const expiration = '2h';
 
-module.exports = {
-  AuthenticationError: new GraphQLError('Could not authenticate user.', {
-    extensions: {
-      code: 'UNAUTHENTICATED',
-    },
-  }),
-  authMiddleware: function ({ req }) {
-    // allows token to be sent via req.body, req.query, or headers
-    let token = req.body.token || req.query.token || req.headers.authorization;
+export const AuthenticationError = new GraphQLError('Could not authenticate user.', {
+  extensions: {
+    code: 'UNAUTHENTICATED',
+  },
+});
 
-    // ["Bearer", "<tokenvalue>"]
-    if (req.headers.authorization) {
-      token = token.split(' ').pop().trim();
-    }
+export const authMiddleware = ({ req }) => {
+  // allows token to be sent via req.body, req.query, or headers
+  let token = req.body.token || req.query.token || req.headers.authorization;
 
-    if (!token) {
-      return req;
-    }
+  // ["Bearer", "<tokenvalue>"]
+  if (req.headers.authorization) {
+    token = token.split(' ').pop().trim();
+  }
 
-    try {
-      const { data } = jwt.verify(token, secret, { maxAge: expiration });
-      req.user = data;
-    } catch {
-      console.log('Invalid token');
-    }
-
+  if (!token) {
     return req;
-  },
-  signToken: function ({ username, email, _id }) {
-    const payload = { username, email, _id };
+  }
 
-    return jwt.sign({ data: payload }, secret, { expiresIn: expiration });
-  },
+  try {
+    const { data } = jwt.verify(token, secret, { maxAge: expiration });
+    req.user = data;
+  } catch {
+    console.log('Invalid token');
+  }
+
+  return req;
 };
+
+export const signToken = ({ username, email, _id }) => {
+  const payload = { username, email, _id };
+
+  return jwt.sign({ data: payload }, secret, { expiresIn: expiration });
+};
+
+export const authenticateUser = async (email, password) => {
+  const user = await User.findOne({ email });
+  if (!user) {
+    throw new Error('User not found');
+  }
+
+  const isValid = await bcrypt.compare(password, user.password);
+  if (!isValid) {
+    throw new Error('Invalid password');
+  }
+
+  return user;
+};
+
+export const generateToken = signToken; // Ensure generateToken is exported

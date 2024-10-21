@@ -1,11 +1,11 @@
-import jwt from 'jsonwebtoken';
 import { User, Client, Event, Planner } from '../models/models.js';
 import bcrypt from 'bcrypt';
+import { signToken, authenticateUser } from '../utils/auth.js';
 
 const resolvers = {
   Query: {
     me: async (parent, args, context) => {
-      if (!context.user) throw new Error("Not authenticated");
+      if (!context.user) throw new Error('Not authenticated');
       return User.findById(context.user.id);
     },
     users: async () => await User.find(),
@@ -24,7 +24,7 @@ const resolvers = {
     },
     client: async (parent, { id }) => {
       const client = await Client.findById(id).populate('planner').populate('events');
-      if (!client) throw new Error("Client not found");
+      if (!client) throw new Error('Client not found');
       return {
         id: client._id.toString(),
         name: client.name,
@@ -35,8 +35,8 @@ const resolvers = {
         actionedRequestList: client.actionedRequestList || []
       };
     },
-    events: async () => await Event.find().populate("planner"),
-    event: async (parent, { id }) => await Event.findById(id).populate("planner"),
+    events: async () => await Event.find().populate('planner'),
+    event: async (parent, { id }) => await Event.findById(id).populate('planner'),
   },
 
   Mutation: {
@@ -53,7 +53,7 @@ const resolvers = {
     createClient: async (parent, { name, email, phone, password, plannerId, eventId }) => {
       const existingUser = await User.findOne({ email });
       if (existingUser) {
-        throw new Error("User already exists");
+        throw new Error('User already exists');
       }
 
       const hashedPassword = await bcrypt.hash(password, 10);
@@ -80,17 +80,17 @@ const resolvers = {
     assignClientToPlannerAndEvent: async (parent, { clientId, plannerId, eventId }) => {
       try {
         const client = await Client.findById(clientId).populate('planner').populate('events');
-        if (!client) throw new Error("Client not found");
+        if (!client) throw new Error('Client not found');
 
         if (plannerId) {
           const planner = await User.findById(plannerId);
-          if (!planner) throw new Error("Planner not found");
+          if (!planner) throw new Error('Planner not found');
           client.planner = plannerId;
         }
 
         if (eventId) {
           const event = await Event.findById(eventId);
-          if (!event) throw new Error("Event not found");
+          if (!event) throw new Error('Event not found');
           const eventExists = client.events.some(e => e.toString() === eventId);
           if (!eventExists) {
             client.events.push(eventId);
@@ -111,20 +111,8 @@ const resolvers = {
       }
     },
     login: async (parent, { email, password }) => {
-      const user = await User.findOne({ email });
-      if (!user) {
-        throw new Error("User not found");
-      }
-      const isValid = await bcrypt.compare(password, user.password);
-      if (!isValid) {
-        throw new Error("Invalid password");
-      }
-
-      const token = jwt.sign(
-        { id: user.id },
-        process.env.JWT_SECRET || "somesupersecretkey",
-        { expiresIn: "1h" }
-      );
+      const user = await authenticateUser(email, password);
+      const token = signToken(user);
 
       return {
         token,
