@@ -10,25 +10,13 @@ const seedUsers = async () => {
     // Connect to MongoDB
     await mongoose.connect(mongoUri);
     console.log('MongoDB connected');
-    
+
     // Clear existing users
     await User.deleteMany({});
     console.log('Existing users removed');
 
     // Create users
     const users = [
-      {
-        username: 'plannerUser',
-        email: 'planner@example.com',
-        password: await bcrypt.hash('password123', 10),
-        role: 'Planner',
-      },
-      {
-        username: 'clientUser',
-        email: 'client@example.com',
-        password: await bcrypt.hash('password123', 10),
-        role: 'Client',
-      },
       {
         username: 'adminUser',
         email: 'admin@example.com',
