@@ -5,7 +5,7 @@ import "./index.css";
 import App from "./App.jsx";
 import Login from "@/pages/LoginPage.jsx";
 import PlannerDashboard from "@pages/PlannerDashboard.jsx";
-import EventDetails from "@ages/EventDetails.jsx";
+import EventDetails from "@pages/EventDetails.jsx";
 import ClientDashboard from "@pages/ClientDashboard.jsx";
 import Logout from "@pages/LogoutPage.jsx";
 import PlannerSettings from '@pages/PlannerSettings.jsx'; // Ensure this import is correct
