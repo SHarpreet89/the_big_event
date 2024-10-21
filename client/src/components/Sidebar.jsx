@@ -92,7 +92,7 @@ const Sidebar = ({ userRole: propUserRole, clientName, unreadMessages }) => {
       <ScrollArea className="flex-1 flex flex-col">
         {userRole ? (
           <nav className="flex flex-col">
-            <Link to="/dashboard" className="flex items-center justify-center w-full h-16">
+            <Link to={userRole === 'Planner' ? '/planner-dashboard' : '/client-dashboard'} className="flex items-center justify-center w-full h-16">
               <Button variant="ghost" className="p-0 w-full h-full flex items-center justify-start">
                 <FiHome style={{ width: 24, height: 24 }} className="mx-4" />
                 {!isCollapsed && <span>Dashboard</span>}
@@ -107,16 +107,16 @@ const Sidebar = ({ userRole: propUserRole, clientName, unreadMessages }) => {
                     {!isCollapsed && <span>Events</span>}
                   </Button>
                 </div>
-                <div className="overflow-y-auto" style={{ maxHeight: '20vh' }}>
+                <div className="overflow-y-auto" style={{ maxHeight: '144px' }}>
                   {events.length > 0 ? events.map(event => (
                     <div
                       key={event.id}
-                      className={`flex items-center justify-start px-4 py-2 cursor-pointer hover:bg-gray-200 ${
+                      className={`flex items-center ${isCollapsed ? 'justify-start' : 'justify-center'} px-2 py-2 cursor-pointer hover:bg-gray-200 ${
                         selectedEvent?.id === event.id ? 'bg-blue-200' : ''
                       }`} // Highlight selected event
                       onClick={() => setSelectedEvent(event)}
                     >
-                      {!isCollapsed && <span>{event.name}</span>}
+                      <span className={`truncate ${isCollapsed ? 'text-xs' : 'text-base'} ${isCollapsed ? 'w-5/6' : 'w-5/6'} ${!isCollapsed && 'text-left'}`}>{event.name}</span>
                     </div>
                   )) : (
                     !isCollapsed && <p className="px-4 py-2 text-gray-500">No events</p>
@@ -129,16 +129,16 @@ const Sidebar = ({ userRole: propUserRole, clientName, unreadMessages }) => {
                     {!isCollapsed && <span>Clients</span>}
                   </Button>
                 </div>
-                <div className="overflow-y-auto" style={{ maxHeight: '20vh' }}>
+                <div className="overflow-y-auto" style={{ maxHeight: '144px' }}>
                   {clients.length > 0 ? clients.map(client => (
                     <div
                       key={client.id}
-                      className={`flex items-center justify-start px-4 py-2 cursor-pointer hover:bg-gray-200 ${
+                      className={`flex items-center ${isCollapsed ? 'justify-start' : 'justify-center'} px-2 py-2 cursor-pointer hover:bg-gray-200 ${
                         selectedClient?.id === client.id ? 'bg-blue-200' : ''
                       }`} // Highlight selected client
                       onClick={() => setSelectedClient(client)}
                     >
-                      {!isCollapsed && <span>{client.name}</span>}
+                      <span className={`truncate ${isCollapsed ? 'text-xs' : 'text-base'} ${isCollapsed ? 'w-5/6' : 'w-5/6'} ${!isCollapsed && 'text-left'}`}>{client.name}</span>
                     </div>
                   )) : (
                     !isCollapsed && <p className="px-4 py-2 text-gray-500">No clients</p>

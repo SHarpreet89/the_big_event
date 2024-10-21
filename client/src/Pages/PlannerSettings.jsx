@@ -249,32 +249,34 @@ const PlannerSettings = () => {
                 {...registerEvent('eventDescription')}
               />
             </div>
-
-            {/* Start Date and Time */}
-            <div className="mb-4">
-              <label className="block text-sm font-medium">Start Date and Time</label>
-              <DatePicker
-                className="border p-2 w-full"
-                selected={startDate}
-                onChange={(date) => setStartDate(date)}
-                showTimeSelect
-                dateFormat="Pp"
-                placeholderText="Select a start date and time"
-              />
-            </div>
-
-            {/* End Date and Time */}
-            <div className="mb-4">
-              <label className="block text-sm font-medium">End Date and Time</label>
-              <DatePicker
-                className="border p-2 w-full"
-                selected={endDate}
-                onChange={(date) => setEndDate(date)}
-                showTimeSelect
-                dateFormat="Pp"
-                placeholderText="Select an end date and time"
-              />
-            </div>
+                            {/* Date and Time Container */}
+                                <div className="mb-4 flex space-x-4">
+                                  {/* Start Date and Time */}
+                                  <div className="flex-1">
+                                    <label className="block text-sm font-medium mb-1">Start Date and Time</label>
+                                    <DatePicker
+                                      className="border p-2 w-full"
+                                      selected={startDate}
+                                      onChange={(date) => setStartDate(date)}
+                                      showTimeSelect
+                                      dateFormat="Pp"
+                                      placeholderText="Select a start date and time"
+                                    />
+                                  </div>
+                                
+                                  {/* End Date and Time */}
+                                  <div className="flex-1">
+                                    <label className="block text-sm font-medium mb-1">End Date and Time</label>
+                                    <DatePicker
+                                      className="border p-2 w-full"
+                                      selected={endDate}
+                                      onChange={(date) => setEndDate(date)}
+                                      showTimeSelect
+                                      dateFormat="Pp"
+                                      placeholderText="Select an end date and time"
+                                    />
+                                  </div>
+                                </div>                     
 
             <div className="mb-4">
               <label className="block text-sm font-medium">Event Location</label>
