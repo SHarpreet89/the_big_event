@@ -5,11 +5,11 @@ import "./index.css";
 import App from "./App.jsx";
 console.log("Ready to import LoginPage! from main.jsx");
 import Login from "./LoginPage.jsx";
-import PlannerDashboard from "@/pages/PlannerDashboard.jsx";
-import EventDetails from "@/pages/EventDetails.jsx";
-import ClientDashboard from "@/pages/ClientDashboard.jsx";
-import Logout from "@/pages/LogoutPage.jsx";
-import PlannerSettings from '@/pages/PlannerSettings.jsx'; // Ensure this import is correct
+import PlannerDashboard from "./PlannerDashboard.jsx";
+import EventDetails from "./EventDetails.jsx";
+import ClientDashboard from "./ClientDashboard.jsx";
+import Logout from "./LogoutPage.jsx";
+import PlannerSettings from './PlannerSettings.jsx'; // Ensure this import is correct
 
 const router = createBrowserRouter([
   {
