@@ -4,7 +4,7 @@ import { ApolloServer } from 'apollo-server-express';
 import { authMiddleware } from './utils/auth.js';
 import { User, Event, Client, Planner, Message } from './models/models.js';
 import { typeDefs, resolvers } from './schemas/index.js';
-import db from './config/connection.js';
+import { connectToMongoDB, db } from './config/connection.js';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -20,6 +20,13 @@ const server = new ApolloServer({
 const app = express();
 
 const startApolloServer = async () => {
+  await connectToMongoDB(); // Ensure MongoDB connection is established
+
+  if (!db) {
+    console.error('Failed to connect to MongoDB');
+    process.exit(1);
+  }
+
   await server.start();
 
   server.applyMiddleware({ app }); // Apply Apollo middleware to Express

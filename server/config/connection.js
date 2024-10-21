@@ -34,6 +34,4 @@ const connectToMongoDB = async () => {
   }
 };
 
-connectToMongoDB();
-
-export default db;
+export { connectToMongoDB, db };
