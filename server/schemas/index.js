@@ -1,14 +1,4 @@
-// const { gql } = require('apollo-server');
+import typeDefs from './typeDefs.js';
+import resolvers from './resolvers.js';
 
-// const typeDefs = gql`
-//   type Query {
-//     hello: String
-//   }
-// `;
-
-const bcrypt = require('bcrypt');
-
-const typeDefs = require('./typeDefs');
-const resolvers = require('./resolvers');
-
-module.exports = { typeDefs, resolvers };
+export { typeDefs, resolvers };

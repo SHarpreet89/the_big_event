@@ -3,7 +3,6 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./index.css";
 import App from "./App.jsx";
-console.log("Ready to import LoginPage! from main.jsx");
 import Login from "./LoginPage.jsx";
 import PlannerDashboard from "./PlannerDashboard.jsx";
 import EventDetails from "./EventDetails.jsx";

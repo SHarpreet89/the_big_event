@@ -1,7 +1,6 @@
-// server/schemas/resolvers.js
-const jwt = require("jsonwebtoken");
-const { User, Client, Event, Planner } = require('../models/models');
-const bcrypt = require("bcrypt");
+import jwt from 'jsonwebtoken';
+import { User, Client, Event, Planner } from '../models/models.js';
+import bcrypt from 'bcrypt';
 
 const resolvers = {
   Query: {
@@ -14,7 +13,7 @@ const resolvers = {
     clients: async () => {
       const clients = await Client.find().populate('planner').populate('events');
       return clients.map(client => ({
-        id: client._id.toString(), // Ensure id is always a string
+        id: client._id.toString(),
         name: client.name,
         planner: client.planner || null,
         events: client.events || [],
@@ -27,7 +26,7 @@ const resolvers = {
       const client = await Client.findById(id).populate('planner').populate('events');
       if (!client) throw new Error("Client not found");
       return {
-        id: client._id.toString(), // Ensure id is always a string
+        id: client._id.toString(),
         name: client.name,
         planner: client.planner || null,
         events: client.events || [],
@@ -101,7 +100,7 @@ const resolvers = {
         const savedClient = await client.save();
         const populatedClient = await Client.findById(savedClient._id).populate('planner').populate('events');
         return {
-          id: populatedClient._id.toString(), // Ensure id is always a string
+          id: populatedClient._id.toString(),
           name: populatedClient.name,
           planner: populatedClient.planner ? { id: populatedClient.planner._id.toString(), username: populatedClient.planner.username } : null,
           events: populatedClient.events.map(event => ({ id: event._id.toString(), name: event.name })),
@@ -136,7 +135,6 @@ const resolvers = {
       try {
         console.log('Creating event:', { name, description, startDate, endDate, location, plannerId, clientId });
 
-        // Check if an event with the same details already exists
         const existingEvent = await Event.findOne({ name, description, startDate, endDate, location, planner: plannerId });
         if (existingEvent) {
           console.log('Event already exists:', existingEvent);
@@ -146,8 +144,8 @@ const resolvers = {
         const newEvent = new Event({
           name,
           description,
-          startDate: new Date(startDate), // Convert string to Date object
-          endDate: new Date(endDate), // Add end date
+          startDate: new Date(startDate),
+          endDate: new Date(endDate),
           location,
           planner: plannerId,
           clients: clientId ? [clientId] : [],
@@ -155,7 +153,6 @@ const resolvers = {
     
         const savedEvent = await newEvent.save();
         
-        // Populate the planner and clients fields
         const populatedEvent = await Event.findById(savedEvent._id).populate('planner').populate('clients');
         
         return populatedEvent;
@@ -173,4 +170,4 @@ const resolvers = {
   },
 };
 
-module.exports = resolvers;
+export default resolvers;

@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 const { Schema } = mongoose;
 
 // Define the schema for the Planner model
@@ -24,4 +24,4 @@ const plannerSchema = new Schema({
 // Create the Planner model
 const Planner = mongoose.model('Planner', plannerSchema);
 
-module.exports = Planner;
+export default Planner;

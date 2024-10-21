@@ -1,14 +1,15 @@
-const express = require('express');
-const path = require('path');
-// Import the ApolloServer class
-const { ApolloServer } = require('@apollo/server');
-const { expressMiddleware } = require('@apollo/server/express4');
-const { authMiddleware } = require('./utils/auth');
-const { User, Event, Client, Planner, Message } = require('./models/models.js');
+import express from 'express';
+import path from 'path';
+import { ApolloServer } from '@apollo/server';
+import { expressMiddleware } from '@apollo/server/express4';
+import { authMiddleware } from './utils/auth.js';
+import { User, Event, Client, Planner, Message } from './models/models.js';
+import { typeDefs, resolvers } from './schemas/index.js';
+import db from './config/connection.js';
+import { fileURLToPath } from 'url';
 
-// Import the two parts of a GraphQL schema
-const { typeDefs, resolvers } = require('./schemas');
-const db = require('./config/connection');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const PORT = process.env.PORT || 3001;
 const server = new ApolloServer({

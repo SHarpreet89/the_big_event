@@ -1,5 +1,5 @@
 // models/Client.js
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 const { Schema } = mongoose;
 
 // Define the schema for the Client model
@@ -59,4 +59,4 @@ const clientSchema = new Schema({
 // Create the Client model
 const Client = mongoose.model('Client', clientSchema);
 
-module.exports = Client;
+export default Client;
