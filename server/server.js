@@ -7,7 +7,11 @@ import { connectToMongoDB, db } from './config/connection.js';
 import { fileURLToPath } from 'url';
 import mongoose from 'mongoose';
 
-// ... (rest of your imports and setup)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const PORT = process.env.PORT || 3001;
+const app = express();
 
 const startApolloServer = async () => {
   await connectToMongoDB(); // Ensure MongoDB connection is established
@@ -16,6 +20,13 @@ const startApolloServer = async () => {
     console.error('Failed to connect to MongoDB');
     process.exit(1);
   }
+
+  const server = new ApolloServer({
+    typeDefs,
+    resolvers,
+    context: ({ req }) => authMiddleware({ req }),
+    persistedQueries: false, // Disable persisted queries
+  });
 
   await server.start();
 
