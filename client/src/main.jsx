@@ -3,11 +3,11 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./index.css";
 import App from "./App.jsx";
-import Login from "./pages/Login.jsx";
+import Login from "./pages/LoginPage.jsx";
 import PlannerDashboard from "./pages/PlannerDashboard.jsx";
 import EventDetails from "./pages/EventDetails.jsx";
 import ClientDashboard from "./pages/ClientDashboard.jsx";
-import Logout from "./pages/Logout.jsx";
+import Logout from "./pages/LogoutPage.jsx";
 import PlannerSettings from './pages/PlannerSettings.jsx'; // Ensure this import is correct
 
 const router = createBrowserRouter([
