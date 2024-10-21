@@ -2,22 +2,12 @@ import express from 'express';
 import path from 'path';
 import { ApolloServer } from 'apollo-server-express';
 import { authMiddleware } from './utils/auth.js';
-import { User, Event, Client, Planner, Message } from './models/models.js';
 import { typeDefs, resolvers } from './schemas/index.js';
 import { connectToMongoDB, db } from './config/connection.js';
 import { fileURLToPath } from 'url';
+import mongoose from 'mongoose';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const PORT = process.env.PORT || 3001;
-const server = new ApolloServer({
-  typeDefs,
-  resolvers,
-  context: ({ req }) => authMiddleware({ req }), // Use authMiddleware here
-});
-
-const app = express();
+// ... (rest of your imports and setup)
 
 const startApolloServer = async () => {
   await connectToMongoDB(); // Ensure MongoDB connection is established
@@ -41,12 +31,22 @@ const startApolloServer = async () => {
     });
   }
 
-  db.once('open', () => {
+  // Use a different approach for development and production
+  if (process.env.NODE_ENV === 'production') {
+    // In production, we're using the native MongoDB driver
     app.listen(PORT, () => {
       console.log(`API server running on port ${PORT}!`);
       console.log(`Use GraphQL at http://localhost:${PORT}${server.graphqlPath}`);
     });
-  });
+  } else {
+    // In development, we're using Mongoose
+    mongoose.connection.once('open', () => {
+      app.listen(PORT, () => {
+        console.log(`API server running on port ${PORT}!`);
+        console.log(`Use GraphQL at http://localhost:${PORT}${server.graphqlPath}`);
+      });
+    });
+  }
 };
 
 startApolloServer();
