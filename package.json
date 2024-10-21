@@ -9,8 +9,7 @@
     "seed": "cross-env NODE_ENV=development node server/seeding/usersSeed.js",
     "server": "cross-env NODE_ENV=development nodemon server/server.js",
     "watch": "cross-env NODE_ENV=development node server/server.js",
-    "build": "cd client && npm install && npm run build",
-    "prebuild": "npm install"
+    "build": "npm install && cd client && npm install && npm run build"
   },
   
   "dependencies": {
