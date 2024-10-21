@@ -8,34 +8,32 @@ const mongoUri = process.env.NODE_ENV === 'production' ? prodUri : devUri;
 
 let db;
 
-if (process.env.NODE_ENV === 'production') {
-  // Use native MongoDB driver in production
-  const client = new MongoClient(mongoUri, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  });
+const connectToMongoDB = async () => {
+  if (process.env.NODE_ENV === 'production') {
+    // Use native MongoDB driver in production
+    const client = new MongoClient(mongoUri);
 
-  try {
-    await client.connect();
-    console.log('MongoDB connected using native driver');
-    db = client.db();
-  } catch (err) {
-    console.log('MongoDB connection error:', err);
-    process.exit(1);
+    try {
+      await client.connect();
+      console.log('MongoDB connected using native driver');
+      db = client.db();
+    } catch (err) {
+      console.log('MongoDB connection error:', err);
+      process.exit(1);
+    }
+  } else {
+    // Use Mongoose in development
+    try {
+      await mongoose.connect(mongoUri);
+      console.log('MongoDB connected using Mongoose');
+      db = mongoose.connection;
+    } catch (err) {
+      console.log('MongoDB connection error:', err);
+      process.exit(1);
+    }
   }
-} else {
-  // Use Mongoose in development
-  try {
-    await mongoose.connect(mongoUri, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
-    console.log('MongoDB connected using Mongoose');
-    db = mongoose.connection;
-  } catch (err) {
-    console.log('MongoDB connection error:', err);
-    process.exit(1);
-  }
-}
+};
+
+connectToMongoDB();
 
 export default db;
