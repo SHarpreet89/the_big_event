@@ -1,3 +1,4 @@
+// models/Client.js
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
@@ -10,13 +11,13 @@ const clientSchema = new Schema({
   planner: {
     type: Schema.Types.ObjectId,
     ref: 'Planner', // Reference to the Planner model
-    required: true,
   },
-  event: {
-    type: Schema.Types.ObjectId,
-    ref: 'Event', // Reference to the Event model
-    required: true,
-  },
+  events: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: 'Event', // Reference to the Event model
+    },
+  ],
   notes: [
     {
       type: String,
@@ -26,7 +27,6 @@ const clientSchema = new Schema({
     {
       item: {
         type: String,
-        required: true,
       },
       description: {
         type: String,

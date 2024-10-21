@@ -13,7 +13,9 @@ const LOGIN_MUTATION = gql`
     login(email: $email, password: $password) {
       token
       user {
-        _id
+        id
+        username
+        email
         role
       }
     }
@@ -29,8 +31,9 @@ function Login() {
   });
 
   const navigate = useNavigate();
-  const { setUserRole } = useOutletContext(); // Get setUserRole from context
-  const [loginMutation, { loading, error }] = useMutation(LOGIN_MUTATION); // Added loading and error for better UX
+  const { setUserRole } = useOutletContext();
+  const [loginMutation, { loading }] = useMutation(LOGIN_MUTATION);
+  const [error, setError] = React.useState(null);
 
   const onSubmit = async (data) => {
     try {
@@ -38,21 +41,23 @@ function Login() {
         variables: { email: data.email, password: data.password },
       });
   
-      const token = loginData.login.token;  
+      const token = loginData.login.token;
       localStorage.setItem('token', token);
   
-      const userRole = loginData.login.user.role; 
-      setUserRole(userRole); // Update userRole in context
+      const userRole = loginData.login.user.role;
+      setUserRole(userRole);
       localStorage.setItem('userRole', userRole);
   
-      // Navigate based on the user role
       if (userRole === 'Planner') {
         navigate('/planner-dashboard');
       } else if (userRole === 'Client') {
         navigate('/client-dashboard');
+      } else {
+        setError('Unknown user role. Please contact support.');
       }
     } catch (err) {
       console.error('Login error:', err);
+      setError(err.message);
     }
   };
 
@@ -63,6 +68,11 @@ function Login() {
           <CardTitle>Login</CardTitle>
         </CardHeader>
         <CardContent>
+          {error && (
+            <div className="mb-4 text-red-500">
+              {error}
+            </div>
+          )}
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
               <FormField
@@ -94,7 +104,6 @@ function Login() {
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? 'Logging in...' : 'Login'}
               </Button>
-              {error && <p>Error: {error.message}</p>} {/* Display error if any */}
             </form>
           </Form>
         </CardContent>
