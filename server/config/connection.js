@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 
 // MongoDB connection URIs for development and production
 const devUri = 'mongodb://localhost:27017/thebigevent';
-const prodUri = 'mongodb+srv://thebiguser:thebigDB@thebigevent.vvgau.mongodb.net/?retryWrites=true&w=majority&appName=TheBigEvent';  // Environment variable set in Render
+const prodUri = 'mongodb+srv://thebiguser:thebigDB@thebigevent.vvgau.mongodb.net/thebigevent?retryWrites=true&w=majority&appName=TheBigEvent';  // Environment variable set in Render
 
 // Determine which URI to use based on the environment
 const mongoUri = process.env.NODE_ENV === 'production' ? prodUri : devUri;
