@@ -1,4 +1,9 @@
 const typeDefs = `
+
+type Query {
+  hello: String
+}
+
   type User {
     id: ID!
     username: String!
