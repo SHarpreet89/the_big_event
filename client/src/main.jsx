@@ -24,7 +24,7 @@ const router = createBrowserRouter([
       { path: "client-dashboard", element: <ClientDashboard />, },
       { path: "logout", element: <Logout />,},
       { path: "PlannerSettings", element: <PlannerSettings />, },
-      { path:  "admin", element: <AdminPage />}
+      { path:  "admin-dashboard", element: <AdminPage />}
     ],
   },
 ]);

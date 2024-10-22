@@ -43,14 +43,24 @@ export const signToken = ({ username, email, _id }) => {
 
 export const authenticateUser = async (email, password) => {
   const user = await User.findOne({ email });
+  console.log(user);
   if (!user) {
     throw new Error('User not found');
   }
 
+  const a = 'adminpassword';
+  const b = '$2b$10$0g7OVUPS0WzI9TVKbjru0uWfscAktDaZJc/qefTXfHE5zgWw30I6C';
+
+  const test = await bcrypt.compare(a, b);
+
+  console.log(`bcrypt Test ${test}`);
+
   const isValid = await bcrypt.compare(password, user.password);
+  console.log(`Password Validation Check ${isValid}`);
   if (!isValid) {
     throw new Error('Invalid password');
   }
 
   return user;
 };
+
