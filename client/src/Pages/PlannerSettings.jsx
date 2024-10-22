@@ -4,9 +4,9 @@ import { gql, useMutation, useQuery } from '@apollo/client';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { MapContainer, TileLayer, Marker } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css'; // Ensure Leaflet CSS is imported
+import 'leaflet/dist/leaflet.css'; 
 
-const MAP_API_KEY = "f8045187228b415b8e7a34ed2f216782"; // Your Geoapify API key
+const MAP_API_KEY = "f8045187228b415b8e7a34ed2f216782"; 
 
 // GraphQL mutations and queries
 const CREATE_CLIENT_MUTATION = gql`
@@ -127,19 +127,19 @@ const PlannerSettings = () => {
     }
   };
 
-  // Handle user input change
+  
   const handleInputChange = (e) => {
     const value = e.target.value;
     setAddress(value);
-    fetchSuggestions(value); // Fetch suggestions as user types
+    fetchSuggestions(value); 
   };
 
   // Handle suggestion click
   const handleSuggestionClick = (suggestion) => {
     const { lat, lon } = suggestion.properties;
     setEventLocation({ lat, lon });
-    setAddress(suggestion.properties.formatted); // Set the input to the selected suggestion
-    setSuggestions([]); // Clear suggestions after selection
+    setAddress(suggestion.properties.formatted); 
+    setSuggestions([]); 
   };
 
   const onCreateEvent = async (data) => {
@@ -184,9 +184,9 @@ const PlannerSettings = () => {
 
   const onAssignClient = async (data) => {
     try {
-      const clientId = String(data.clientId); // Convert clientId to string
-      const plannerId = data.plannerId ? String(data.plannerId) : null; // Convert plannerId to string
-      const eventId = data.eventId ? String(data.eventId) : null; // Convert eventId to string
+      const clientId = String(data.clientId); 
+      const plannerId = data.plannerId ? String(data.plannerId) : null; 
+      const eventId = data.eventId ? String(data.eventId) : null; 
   
       const response = await assignClient({
         variables: {
