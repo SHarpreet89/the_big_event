@@ -1,4 +1,14 @@
 const typeDefs = `
+
+type Query {
+  hello: String
+}
+
+type Query {
+  hello: String
+  testConnection: String
+}
+
   type User {
     id: ID!
     username: String!
@@ -91,4 +101,4 @@ const typeDefs = `
   }
 `;
 
-module.exports = typeDefs;
+export default typeDefs;

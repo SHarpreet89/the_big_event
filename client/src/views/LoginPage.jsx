@@ -48,10 +48,12 @@ function Login() {
       setUserRole(userRole);
       localStorage.setItem('userRole', userRole);
   
-      if (userRole === 'Planner') {
+           if (userRole === 'Planner') {
         navigate('/planner-dashboard');
       } else if (userRole === 'Client') {
         navigate('/client-dashboard');
+      } else if (userRole === 'Admin') {
+        navigate('/admin-dashboard');
       } else {
         setError('Unknown user role. Please contact support.');
       }

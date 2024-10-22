@@ -3,12 +3,13 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./index.css";
 import App from "./App.jsx";
-import Login from "./pages/Login";
-import PlannerDashboard from "./pages/PlannerDashboard.jsx";
-import EventDetails from "./pages/EventDetails";
-import ClientDashboard from "./pages/ClientDashboard";
-import Logout from "./pages/Logout";
-import PlannerSettings from './pages/PlannerSettings.jsx'; // Ensure this import is correct
+import Login from "./views/LoginPage.jsx";
+import PlannerDashboard from "./views/PlannerDashboard.jsx";
+import EventDetails from "./views/EventDetails.jsx";
+import ClientDashboard from "./views/ClientDashboard.jsx";
+import Logout from "./views/LogoutPage.jsx";
+import PlannerSettings from './views/PlannerSettings.jsx'; // Ensure this import is correct
+import AdminPage from "./views/AdminPage";
 
 const router = createBrowserRouter([
   {
@@ -16,34 +17,14 @@ const router = createBrowserRouter([
     element: <App />,
     errorElement: <h1 className="display-2">Wrong page!</h1>,
     children: [
-      {
-        index: true,
-        element: <Login />,
-      },
-      {
-        path: "login",
-        element: <Login />,
-      },
-      {
-        path: "planner-dashboard",
-        element: <PlannerDashboard />,
-      },
-      {
-        path: "eventdetails",
-        element: <EventDetails />,
-      },
-      {
-        path: "client-dashboard",
-        element: <ClientDashboard />,
-      },
-      {
-        path: "logout",
-        element: <Logout />,
-      },
-      {
-        path: "PlannerSettings",
-        element: <PlannerSettings />, // Ensure this route is correctly defined
-      },
+      { index: true, element: <Login />, },
+      { path: "login", element: <Login />, },
+      { path: "planner-dashboard", element: <PlannerDashboard />, },
+      { path: "eventdetails", element: <EventDetails />, },
+      { path: "client-dashboard", element: <ClientDashboard />, },
+      { path: "logout", element: <Logout />,},
+      { path: "PlannerSettings", element: <PlannerSettings />, },
+      { path:  "admin-dashboard", element: <AdminPage />}
     ],
   },
 ]);
