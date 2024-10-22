@@ -25,7 +25,7 @@ So that I can manage my time and execute a successful event
 
 ## Website Link
 
-[Visit the live site deployed on Render here.](https://linkhere.com)
+[Visit the live site deployed on Render here.](https://the-big-event-mymo.onrender.com/)
 
 ## Technologies Used
 
@@ -41,10 +41,14 @@ So that I can manage my time and execute a successful event
 - Apollo
 - Tailwind
 - Vite
+- Node.js
+- Express.js
 
 ## Installation
 
-To utilise The Big EVent, users must first clone the repository. Once cloned, in VS Code's termina run `npm i; npm run dev` to install any required packages and build the server and client folders concurrently. Once users see the 'App listening' message on their terminal, the app will open automatically in the browser.
+To utilise The Big EVent, users must first clone the repository. Once cloned, in VS Code's terminal run `npm run build` to install any required packages and build the server and client folders concurrently. 
+
+Next run `npm run dev` to get the application running. Once users see the local host and GraphQL message on their terminal, the app will open automatically in the browser.
 
 ## License
 
@@ -76,8 +80,10 @@ If you would like to contribute to the project and make it better, please feel f
 
 ## Future development
 
-- Add client and planner specific views so that event planner's can share the information with their client
+- Add client and planner chat, so client can work with their planner in-app
 - Add more functionality for adding location links, and customising events
+- Add functionality so users can book venues etc within the app
+- Refine the map functionality when it comes to adding locations
 
 ## Questions
 

@@ -4,7 +4,7 @@ import bcrypt from 'bcrypt';
 import { User } from '../models/models.js';
 
 const secret = 'mysecretsshhhhh';
-const expiration = '2h';
+const expiration = '24h';
 
 export const AuthenticationError = new GraphQLError('Could not authenticate user.', {
   extensions: {
@@ -54,5 +54,3 @@ export const authenticateUser = async (email, password) => {
 
   return user;
 };
-
-export const generateToken = signToken; // Ensure generateToken is exported
