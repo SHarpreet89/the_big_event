@@ -1,6 +1,7 @@
 import { User, Client, Event, Planner } from '../models/models.js';
 import bcrypt from 'bcrypt';
 import { signToken, authenticateUser } from '../utils/auth.js';
+import {db} from '../config/connection.js';
 
 const resolvers = {
   Query: {
