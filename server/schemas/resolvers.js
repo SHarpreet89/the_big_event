@@ -8,14 +8,18 @@ const resolvers = {
     
     testConnection: async () => {
       try {
-        const user = await User.findOne();  // Make sure you have a User model
-        console.log('User found:', user);
-        return user ? `User: ${user.username}` : 'No users found';
+        // Check if the database connection is established
+        if (mongoose.connection.readyState === 1 || db) {
+          return "MongoDB connection successful";
+        } else {
+          throw new Error("Not connected");
+        }
       } catch (err) {
-        console.error('Error fetching user:', err);
-        return 'Error connecting to MongoDB';
+        console.error('Error connecting to MongoDB:', err);
+        return "Error connecting to MongoDB";
       }
     },
+
     me: async (parent, args, context) => {
       if (!context.user) throw new Error('Not authenticated');
       return User.findById(context.user.id);

@@ -23,6 +23,7 @@ const connectToMongoDB = async () => {
       await client.connect();
       console.log('MongoDB connected using native driver');
       db = client.db();
+      console.log(`Connected to database: ${db.databaseName}`);
     } else {
       // Use the existing Mongoose connection method in development
       await mongoose.connect(mongoUri, {
