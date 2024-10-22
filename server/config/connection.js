@@ -11,13 +11,19 @@ let db;
 const connectToMongoDB = async () => {
   try {
     if (process.env.NODE_ENV === 'production') {
-      // Use native MongoDB driver in production
-      const client = new MongoClient(mongoUri, { useUnifiedTopology: true });
+      // Use native MongoDB driver in production with enhanced options
+      const clientOptions = {
+        serverSelectionTimeoutMS: 30000, // Timeout for server selection
+        socketTimeoutMS: 45000,          // Timeout for socket
+        ssl: true,                       // Enable SSL for secure connections
+      };
+
+      const client = new MongoClient(mongoUri, clientOptions);
       await client.connect();
       console.log('MongoDB connected using native driver');
       db = client.db();
     } else {
-      // Use Mongoose in development
+      // Use the existing Mongoose connection method in development
       await mongoose.connect(mongoUri, {
         useNewUrlParser: true,
         useUnifiedTopology: true,
@@ -26,8 +32,9 @@ const connectToMongoDB = async () => {
       db = mongoose.connection;
     }
   } catch (err) {
-    console.error('MongoDB connection error:', err);
-    process.exit(1);
+    console.error('MongoDB connection error:', err.message);
+    console.error('Stack trace:', err.stack);
+    throw new Error('Database connection failed');
   }
 };
 
