@@ -9,6 +9,7 @@ import { connectToMongoDB, db } from './config/connection.js';  // Import connec
 import typeDefs from './schemas/typeDefs.js';
 import resolvers from './schemas/resolvers.js';
 import dotenv from 'dotenv'; // Load environment variables
+import { authMiddleware } from './utils/auth.js';
 
 // Load .env in development mode
 if (process.env.NODE_ENV !== 'production') {
@@ -46,10 +47,7 @@ const startApolloServer = async () => {
 
     // GraphQL middleware with optional context injection (e.g., for authentication)
     app.use('/graphql', expressMiddleware(server, {
-      context: ({ req }) => {
-        console.log('GraphQL Context:', req.headers);
-        return { auth: req.headers.authorization || '' }; // Customize as needed
-      }
+      context: authMiddleware
     }));
 
     // Serve static files in production
