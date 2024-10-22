@@ -6,11 +6,16 @@ const resolvers = {
   Query: {
     hello: () => 'Hello world!',
     
-    me: async (parent, args, context) => {
-      if (!context.user) throw new Error('Not authenticated');
-      return User.findById(context.user.id);
+    testConnection: async () => {
+      try {
+        const user = await User.findOne();  // Make sure you have a User model
+        console.log('User found:', user);
+        return user ? `User: ${user.username}` : 'No users found';
+      } catch (err) {
+        console.error('Error fetching user:', err);
+        return 'Error connecting to MongoDB';
+      }
     },
-
     me: async (parent, args, context) => {
       if (!context.user) throw new Error('Not authenticated');
       return User.findById(context.user.id);
