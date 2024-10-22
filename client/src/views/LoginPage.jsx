@@ -40,15 +40,17 @@ function Login() {
       const { data: loginData } = await loginMutation({
         variables: { email: data.email, password: data.password },
       });
-  
+
       const token = loginData.login.token;
       localStorage.setItem('token', token);
-  
-      const userRole = loginData.login.user.role;
+
+      const user = loginData.login.user;
+      const userRole = user.role;
       setUserRole(userRole);
       localStorage.setItem('userRole', userRole);
-  
-           if (userRole === 'Planner') {
+      localStorage.setItem('userId', user.id); // Save user ID to local storage
+
+      if (userRole === 'Planner') {
         navigate('/planner-dashboard');
       } else if (userRole === 'Client') {
         navigate('/client-dashboard');

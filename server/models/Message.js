@@ -6,7 +6,7 @@ const messageSchema = new Schema({
   sender: {
     type: Schema.Types.ObjectId,
     refPath: 'senderModel', // Reference to either Client or Planner model
-    required: true,
+    required: false,
   },
   senderModel: {
     type: String,

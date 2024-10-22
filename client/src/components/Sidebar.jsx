@@ -80,6 +80,11 @@ const Sidebar = ({ userRole: propUserRole, clientName, unreadMessages }) => {
 
   const { clients, events } = data || { clients: [], events: [] }; // Extract clients and events from the data
 
+  // Filter clients based on the selected event
+  const filteredClients = selectedEvent
+    ? clients.filter(client => client.events.some(event => event.id === selectedEvent.id))
+    : clients;
+
   return (
     <div className={`h-screen ${isCollapsed ? 'w-16' : 'w-64'} bg-gray-100 border-r flex flex-col transition-all duration-300`}>
       {userRole && (
@@ -130,7 +135,7 @@ const Sidebar = ({ userRole: propUserRole, clientName, unreadMessages }) => {
                   </Button>
                 </div>
                 <div className="overflow-y-auto" style={{ maxHeight: '144px' }}>
-                  {clients.length > 0 ? clients.map(client => (
+                  {filteredClients.length > 0 ? filteredClients.map(client => (
                     <div
                       key={client.id}
                       className={`flex items-center ${isCollapsed ? 'justify-start' : 'justify-center'} px-2 py-2 cursor-pointer hover:bg-gray-200 ${
