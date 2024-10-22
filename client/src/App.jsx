@@ -61,7 +61,7 @@ function App() {
   return (
     <ApolloProvider client={client}>
       <div className="flex h-screen">
-        <Sidebar userRole={userRole} />
+        {userRole !== 'Admin' && <Sidebar userRole={userRole} />}
         <div className="flex-1 flex flex-col overflow-hidden">
           <Navbar />
           <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-200">

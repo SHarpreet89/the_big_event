@@ -1,13 +1,14 @@
 import { User, Client, Event, Planner } from '../models/models.js';
 import bcrypt from 'bcrypt';
 import { signToken, authenticateUser } from '../utils/auth.js';
-import {db} from '../config/connection.js';
+import { db } from '../config/connection.js';
+import mongoose from 'mongoose'; // You need mongoose here for connection state check
 
 const resolvers = {
   Query: {
     hello: () => 'Hello world!',
     
-           testConnection: async () => {
+    testConnection: async () => {
         try {
           // Check if the database connection is established
           const connectionState = mongoose.connection.readyState;
@@ -21,11 +22,13 @@ const resolvers = {
           console.error('Error connecting to MongoDB:', err);
           return "Error connecting to MongoDB";
         }
-      },
+    },
+
     me: async (parent, args, context) => {
       if (!context.user) throw new Error('Not authenticated');
       return User.findById(context.user.id);
     },
+
     users: async () => await User.find(),
     user: async (parent, { id }) => User.findById(id),
     clients: async () => {
@@ -60,26 +63,32 @@ const resolvers = {
   Mutation: {
     createUser: async (parent, args) => {
       const { username, email, password, role } = args;
-      const hashedPassword = await bcrypt.hash(password, 12);
+
       const user = new User({
         username,
         email,
-        password: hashedPassword,
+        password, // Pass raw password, bcrypt will handle hashing in the pre-save middleware
         role,
       });
-      return user.save();
+    
+      const savedUser = await user.save();
+    
+      // Log the user creation success
+      console.log('User created successfully:', savedUser);
+    
+      return savedUser;
     },
+    
     createClient: async (parent, { name, email, phone, password, plannerId, eventId }) => {
       const existingUser = await User.findOne({ email });
       if (existingUser) {
         throw new Error('User already exists');
       }
 
-      const hashedPassword = await bcrypt.hash(password, 10);
       const user = new User({
         username: name,
         email,
-        password: hashedPassword,
+        password, // Pass raw password, bcrypt will handle hashing in the pre-save middleware
         role: 'Client',
       });
       const savedUser = await user.save();
@@ -96,6 +105,7 @@ const resolvers = {
         client: savedClient,
       };
     },
+    
     assignClientToPlannerAndEvent: async (parent, { clientId, plannerId, eventId }) => {
       try {
         const client = await Client.findById(clientId).populate('planner').populate('events');
@@ -129,6 +139,7 @@ const resolvers = {
         throw new Error('Failed to assign client to planner and event: ' + error.message);
       }
     },
+    
     login: async (parent, { email, password }) => {
       const user = await authenticateUser(email, password);
       const token = signToken(user);
@@ -138,6 +149,7 @@ const resolvers = {
         user,
       };
     },
+
     createEvent: async (parent, { name, description, startDate, endDate, location, plannerId, clientId }) => {
       try {
         console.log('Creating event:', { name, description, startDate, endDate, location, plannerId, clientId });
@@ -169,9 +181,11 @@ const resolvers = {
       }
     },
   },
+  
   User: {
     events: async (user) => await Event.find({ planner: user.id }),
   },
+  
   Event: {
     planner: async (event) => await User.findById(event.planner),
   },
