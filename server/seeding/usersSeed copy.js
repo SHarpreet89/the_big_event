@@ -18,6 +18,18 @@ const seedUsers = async () => {
     // Create users
     const users = [
       {
+        username: 'plannerUser',
+        email: 'planner@example.com',
+        password: await bcrypt.hash('password123', 10),
+        role: 'Planner',
+      },
+      {
+        username: 'clientUser',
+        email: 'client@example.com',
+        password: await bcrypt.hash('password123', 10),
+        role: 'Client',
+      },
+      {
         username: 'adminUser',
         email: 'admin@example.com',
         password: await bcrypt.hash('adminpassword', 10),

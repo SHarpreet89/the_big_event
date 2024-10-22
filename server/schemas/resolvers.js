@@ -27,21 +27,27 @@ const resolvers = {
       return User.findById(context.user.id);
     },
 
-    getMessages: async (parent, { plannerId, clientId }) => {
+    getMessages: async (parent, { plannerId, clientId, eventId }) => {
       try {
         const messages = await Message.find({
+          event: eventId,
           $or: [
             { sender: plannerId, receiver: clientId },
             { sender: clientId, receiver: plannerId }
           ]
-        }).sort({ timestamp: 1 }); // Sort by timestamp to show in chronological order
-        return messages;
+        }).sort({ timestamp: 1 }).lean();
+
+        // Return only the content and timestamp fields for each message
+        return messages.map(msg => ({
+          content: msg.content,
+          timestamp: msg.timestamp.toISOString(), // Convert Date object to string
+        }));
       } catch (error) {
-        console.error('Error fetching messages:', error);
+        console.error('Error in getMessages:', error);
         throw new Error('Failed to fetch messages');
       }
     },
-
+    
     users: async () => await User.find(),
     user: async (parent, { id }) => User.findById(id),
     clients: async () => {
@@ -91,54 +97,37 @@ const resolvers = {
       return savedUser;
     },
 
+    
     sendMessage: async (parent, { senderId, senderModel, receiverId, receiverModel, eventId, content }) => {
       try {
+        // Validate that all required fields are present
+        if (!senderId || !senderModel || !receiverId || !receiverModel || !eventId || !content) {
+          throw new Error('Missing required fields');
+        }
+  
+        // Save the message in the database
         const message = new Message({
           sender: senderId,
-          senderModel,
+          senderModel: senderModel,
           receiver: receiverId,
-          receiverModel,
+          receiverModel: receiverModel,
           event: eventId,
           content,
+          timestamp: new Date() // Save the current timestamp
         });
-
-        // Save the message
-        const savedMessage = await message.save();
-
-        // Return only the saved message without populating any additional data
-        return savedMessage;
+  
+        await message.save();
+        console.log('Message saved:', message);
+  
+        // Return only the content and timestamp to the frontend
+        return {
+          content: message.content,
+          timestamp: message.timestamp.toISOString() // Return timestamp as string
+        };
       } catch (error) {
-        console.error('Error sending message:', error);
-        throw new Error('Failed to send message: ' + error.message);
+        console.error('Error in sendMessage:', error);
+        throw new Error('Failed to send message');
       }
-    },
-
-    createClient: async (parent, { name, email, phone, password, plannerId, eventId }) => {
-      const existingUser = await User.findOne({ email });
-      if (existingUser) {
-        throw new Error('User already exists');
-      }
-
-      const user = new User({
-        username: name,
-        email,
-        password, // Pass raw password, bcrypt will handle hashing in the pre-save middleware
-        role: 'Client',
-      });
-
-      const savedUser = await user.save();
-
-      const client = new Client({
-        name,
-        planner: plannerId || null,
-        events: eventId ? [eventId] : [],
-      });
-      const savedClient = await client.save();
-
-      return {
-        user: savedUser,
-        client: savedClient,
-      };
     },
 
     assignClientToPlannerAndEvent: async (parent, { clientId, plannerId, eventId }) => {
