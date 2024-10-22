@@ -3,7 +3,7 @@ import moment from 'moment';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import Carousel from 'react-multi-carousel';
 import 'react-multi-carousel/lib/styles.css';
-import Timeline from './components/Timeline'; // Import the nested Timeline component
+import Timeline from '../components/Timeline'; // Import the nested Timeline component
 import './PlannerDashboard.css'; // Import the CSS file
 
 function PlannerDashboard() {

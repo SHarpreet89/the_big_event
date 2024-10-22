@@ -1,7 +1,7 @@
 import { MongoClient } from 'mongodb';
 import bcrypt from 'bcrypt';
 
-const mongoUri = 'mongodb+srv://thebigevent:thebigDB@thebigevent.vvgau.mongodb.net/?retryWrites=true&w=majority&appName=TheBigEvent';
+const mongoUri = 'mongodb+srv://thebiguser:thebigDB@thebigevent.vvgau.mongodb.net/?retryWrites=true&w=majority&appName=TheBigEvent';
 
 const seedDatabase = async () => {
   const client = new MongoClient(mongoUri);
