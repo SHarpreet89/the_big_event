@@ -2,7 +2,7 @@ import { MongoClient } from 'mongodb';
 import mongoose from 'mongoose';
 
 const devUri = 'mongodb://localhost:27017/thebigevent';
-const prodUri = process.env.MONGODB_URI;  // Environment variable set in Render
+const prodUri = 'mongodb+srv://thebigevent:thebigDB@thebigevent.vvgau.mongodb.net/?retryWrites=true&w=majority&appName=TheBigEvent';  // Environment variable set in Render
 
 const mongoUri = process.env.NODE_ENV === 'production' ? prodUri : devUri;
 
@@ -11,6 +11,7 @@ let db;
 const connectToMongoDB = async () => {
   try {
     if (process.env.NODE_ENV === 'production') {
+      console.log(`Using native prduction URI for server login it is ${mongoUri}`);
       // Use native MongoDB driver in production with enhanced options
       const clientOptions = {
         serverSelectionTimeoutMS: 30000, // Timeout for server selection
