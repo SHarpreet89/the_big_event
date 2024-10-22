@@ -7,20 +7,21 @@ const resolvers = {
   Query: {
     hello: () => 'Hello world!',
     
-       testConnection: async () => {
-      try {
-        // Check if the database connection is established
-        if (mongoose.connection.readyState === 1 || db) {
-          return "MongoDB connection successful";
-        } else {
-          console.error('MongoDB connection is not in a ready state');
-          throw new Error("Not connected");
+           testConnection: async () => {
+        try {
+          // Check if the database connection is established
+          const connectionState = mongoose.connection.readyState;
+          if (connectionState === 1 || db) {
+            return "MongoDB connection successful";
+          } else {
+            console.error(`MongoDB connection is not in a ready state. Current state: ${connectionState}`);
+            throw new Error("Not connected");
+          }
+        } catch (err) {
+          console.error('Error connecting to MongoDB:', err);
+          return "Error connecting to MongoDB";
         }
-      } catch (err) {
-        console.error('Error connecting to MongoDB:', err);
-        return "Error connecting to MongoDB";
-      }
-    },
+      },
     me: async (parent, args, context) => {
       if (!context.user) throw new Error('Not authenticated');
       return User.findById(context.user.id);
