@@ -4,9 +4,12 @@ import { signToken, authenticateUser } from '../utils/auth.js';
 
 const resolvers = {
   Query: {
-
     hello: () => 'Hello world!',
-      },
+    
+    me: async (parent, args, context) => {
+      if (!context.user) throw new Error('Not authenticated');
+      return User.findById(context.user.id);
+    },
 
     me: async (parent, args, context) => {
       if (!context.user) throw new Error('Not authenticated');
@@ -44,7 +47,8 @@ const resolvers = {
   },
 
   Mutation: {
-    createUser: async (parent, { username, email, password, role }) => {
+    createUser: async (parent, args) => {
+      const { username, email, password, role } = args;
       const hashedPassword = await bcrypt.hash(password, 12);
       const user = new User({
         username,
