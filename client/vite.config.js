@@ -1,20 +1,23 @@
-import path from "path"
-import { fileURLToPath } from 'url'
-import { defineConfig, loadEnv } from 'vite'
-import react from '@vitejs/plugin-react'
-import process from 'node:process'
+import path from "path";
+import { fileURLToPath } from 'url';
+import { defineConfig, loadEnv } from 'vite';
+import react from '@vitejs/plugin-react';
+import process from 'node:process';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig(({ command, mode }) => {
-  // Load environment variables based on the mode
-  const env = loadEnv(mode, process.cwd(), '')
+  const env = loadEnv(mode, process.cwd(), '');
 
-  // Use console.warn for more visibility
+  // Fallbacks in case environment variables are not provided
+  const apiUrl = env.VITE_API_URL || 'http://localhost:3001';
+  const apiSecure = env.VITE_API_SECURE === 'true';
+  const vitePort = parseInt(env.VITE_PORT) || 5173;
+
   console.warn('Vite config is being executed');
-  console.warn('VITE_API_URL:', env.VITE_API_URL);
-  console.warn('VITE_API_SECURE:', env.VITE_API_SECURE);
-  console.warn('VITE_PORT:', env.VITE_PORT);
+  console.warn('VITE_API_URL:', apiUrl);
+  console.warn('VITE_API_SECURE:', apiSecure);
+  console.warn('VITE_PORT:', vitePort);
 
   return {
     plugins: [
@@ -23,20 +26,20 @@ export default defineConfig(({ command, mode }) => {
         name: 'log-env',
         configResolved(config) {
           console.warn('Final resolved Vite config:', {
-            VITE_API_URL: config.env.VITE_API_URL,
-            VITE_API_SECURE: config.env.VITE_API_SECURE,
-            VITE_PORT: config.env.VITE_PORT,
+            VITE_API_URL: apiUrl,
+            VITE_API_SECURE: apiSecure,
+            VITE_PORT: vitePort,
           });
         },
       },
     ],
     server: {
-      port: parseInt(env.VITE_PORT) || 5173,
+      port: vitePort,
       open: true,
       proxy: {
         '/graphql': {
-          target: env.VITE_API_URL || 'http://localhost:3001',
-          secure: env.VITE_API_SECURE === 'true',
+          target: apiUrl,
+          secure: apiSecure,
           changeOrigin: true,
         }
       },
@@ -47,4 +50,4 @@ export default defineConfig(({ command, mode }) => {
       }
     },
   }
-})
+});
