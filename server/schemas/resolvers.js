@@ -6,12 +6,13 @@ const resolvers = {
   Query: {
     hello: () => 'Hello world!',
     
-    testConnection: async () => {
+       testConnection: async () => {
       try {
         // Check if the database connection is established
         if (mongoose.connection.readyState === 1 || db) {
           return "MongoDB connection successful";
         } else {
+          console.error('MongoDB connection is not in a ready state');
           throw new Error("Not connected");
         }
       } catch (err) {
@@ -19,7 +20,6 @@ const resolvers = {
         return "Error connecting to MongoDB";
       }
     },
-
     me: async (parent, args, context) => {
       if (!context.user) throw new Error('Not authenticated');
       return User.findById(context.user.id);
