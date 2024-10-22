@@ -1,38 +1,42 @@
-const { MongoClient } = require('mongodb');
-const mongoose = require('mongoose');
+// Importing Mongoose with ES6 syntax
+import mongoose from 'mongoose';
 
+// MongoDB connection URIs for development and production
 const devUri = 'mongodb://localhost:27017/thebigevent';
-const prodUri = process.env.MONGODB_URI;
+const prodUri = process.env.MONGODB_URI;  // Environment variable set in Render
 
+// Determine which URI to use based on the environment
 const mongoUri = process.env.NODE_ENV === 'production' ? prodUri : devUri;
 
-if (process.env.NODE_ENV === 'production') {
-  // Use native MongoDB driver in production
-  const client = new MongoClient(mongoUri, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  });
+let db;
 
-  client.connect()
-    .then(() => {
-      console.log('MongoDB connected using native driver');
-      module.exports = client.db();
-    })
-    .catch((err) => {
-      console.log('MongoDB connection error:', err);
-      process.exit(1);
-    });
-} else {
-  // Use Mongoose in development
-  mongoose.connect(mongoUri, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-    .then(() => console.log('MongoDB connected using Mongoose'))
-    .catch((err) => {
-      console.log('MongoDB connection error:', err);
-      process.exit(1);
+const connectToMongoDB = async () => {
+  try {
+    // Log connection attempt
+    console.log(`Connecting to MongoDB using Mongoose, URI: ${mongoUri}`);
+
+    // Use Mongoose for both development and production environments
+    await mongoose.connect(mongoUri, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      ssl: process.env.NODE_ENV === 'production', // Enable SSL in production
+      serverSelectionTimeoutMS: 30000,           // Timeout for server selection
+      socketTimeoutMS: 45000,                    // Timeout for socket
     });
 
-  module.exports = mongoose.connection;
-}
+    // Connection success
+    console.log('MongoDB connected successfully using Mongoose');
+    db = mongoose.connection;
+
+    // Log the name of the connected database
+    console.log(`Connected to database: ${db.name}`);
+  } catch (err) {
+    // Log any connection errors and rethrow
+    console.error('MongoDB connection error:', err.message);
+    console.error('Stack trace:', err.stack);
+    throw new Error('Database connection failed');
+  }
+};
+
+// Export the connection and database reference
+export { connectToMongoDB, db };

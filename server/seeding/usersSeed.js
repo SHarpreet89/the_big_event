@@ -1,6 +1,6 @@
-const mongoose = require('mongoose');
-const bcrypt = require('bcrypt');
-const User = require('../models/User'); // Adjust the path as necessary
+import mongoose from 'mongoose';
+import bcrypt from 'bcrypt';
+import User from '../models/User.js'; // Adjust the path as necessary
 
 const seedUsers = async () => {
   try {
@@ -42,11 +42,11 @@ const seedUsers = async () => {
     console.log('Users seeded successfully');
 
     // Close the connection
-    mongoose.connection.close();
+    await mongoose.connection.close();
     console.log('MongoDB connection closed');
   } catch (err) {
     console.error('Error seeding users:', err);
-    mongoose.connection.close();
+    await mongoose.connection.close();
   }
 };
 
