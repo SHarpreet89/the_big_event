@@ -82,11 +82,14 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  width: calc(100% - 20px) !important;
+  max-width: 400px !important;
+  margin: 0 auto;
 }
 
 .carousel-container {
   height: 100%;
-  padding: 0;
+  padding: 0 20px;
 }
 
 .react-multi-carousel-item {
@@ -94,6 +97,10 @@
   justify-content: center !important;
   align-items: center !important;
   height: 100% !important;
+}
+
+.react-multi-carousel-list {
+  justify-content: center;
 }
 
 .carousel-card {

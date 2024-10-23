@@ -1,8 +1,6 @@
-// models/Client.js
 import mongoose from 'mongoose';
 const { Schema } = mongoose;
 
-// Define the schema for the Client model
 const clientSchema = new Schema({
   name: {
     type: String,
@@ -11,12 +9,12 @@ const clientSchema = new Schema({
   planner: {
     type: Schema.Types.ObjectId,
     ref: 'Planner', // Reference to the Planner model
-    unique: true,
+    // Removed the unique: true constraint
   },
   events: [
     {
       type: Schema.Types.ObjectId,
-      ref: 'Event', // Reference to the Event model
+      ref: 'Event',
     },
   ],
   notes: [
@@ -47,7 +45,7 @@ const clientSchema = new Schema({
       },
       actionedBy: {
         type: Schema.Types.ObjectId,
-        ref: 'Planner', // Reference to the Planner model who actioned the request
+        ref: 'Planner',
       },
       actionedAt: {
         type: Date,
@@ -60,7 +58,6 @@ const clientSchema = new Schema({
 // Pre-save middleware to handle planner assignment
 clientSchema.pre('save', async function(next) {
   if (this.isModified('planner')) {
-    const Client = mongoose.model('Client');
     const Planner = mongoose.model('Planner');
 
     // If this client already had a planner, remove this client from that planner's clients array
@@ -76,12 +73,6 @@ clientSchema.pre('save', async function(next) {
         $addToSet: { clients: this._id }
       });
     }
-
-    // Ensure no other client has this planner
-    await Client.updateMany(
-      { _id: { $ne: this._id }, planner: this.planner },
-      { $unset: { planner: 1 } }
-    );
   }
 
   // Check for duplicate event assignments
@@ -117,7 +108,6 @@ clientSchema.statics.addEvent = async function(clientId, eventId) {
   return client;
 };
 
-// Create the Client model
 const Client = mongoose.model('Client', clientSchema);
 
 export default Client;
