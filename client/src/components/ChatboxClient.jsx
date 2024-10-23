@@ -16,6 +16,15 @@ const GET_MESSAGES = gql`
   }
 `;
 
+const GET_PLANNER_NAME = gql`
+  query GetPlanner($plannerId: ID!) {
+    planner(id: $plannerId) {
+      id
+      name
+    }
+  }
+`;
+
 const SEND_MESSAGE = gql`
   mutation SendMessage(
     $senderId: ID!, 
@@ -41,17 +50,22 @@ const SEND_MESSAGE = gql`
   }
 `;
 
-const Chatbox = ({ clientName, senderId, receiverId, eventId, userRole }) => {
-  console.log('Chatbox component rendering with props:', { clientName, senderId, receiverId, eventId, userRole });
-
+const ChatboxClient = ({ clientName, senderId, receiverId, eventId, userRole }) => {
   const [message, setMessage] = useState('');
   const messagesEndRef = useRef(null);
 
-  console.log('Chatbox initialized with:', {
+  // Query for planner's name
+  const { data: plannerData } = useQuery(GET_PLANNER_NAME, {
+    variables: { plannerId: receiverId },
+    skip: !receiverId || userRole !== 'Client',
+  });
+
+  console.log('ChatboxClient initialized with:', {
     senderId,
     receiverId,
     eventId,
-    userRole
+    userRole,
+    plannerName: plannerData?.planner?.name
   });
 
   // Query Messages
@@ -64,19 +78,14 @@ const Chatbox = ({ clientName, senderId, receiverId, eventId, userRole }) => {
     skip: !senderId || !receiverId || !eventId,
     pollInterval: 5000,
     onCompleted: (data) => {
-      console.log('GET_MESSAGES query completed. Variables:', {
-        plannerId: userRole === 'Planner' ? senderId : receiverId,
-        clientId: userRole === 'Client' ? senderId : receiverId,
-        eventId
-      });
-      console.log('Received messages:', data.getMessages);
+      console.log('Messages received:', data?.getMessages);
     }
   });
   
   // Send Message Mutation
   const [sendMessage] = useMutation(SEND_MESSAGE, {
     onCompleted: () => {
-      setMessage(''); // Clear the message input field
+      setMessage(''); // Clear message field after successful send
       refetch();
     },
     onError: (error) => {
@@ -98,15 +107,6 @@ const Chatbox = ({ clientName, senderId, receiverId, eventId, userRole }) => {
     const receiverModel = userRole === 'Planner' ? 'Client' : 'Planner';
 
     try {
-      console.log('Sending message:', {
-        senderId,
-        senderModel,
-        receiverId,
-        receiverModel,
-        eventId,
-        content: message.trim()
-      });
-
       await sendMessage({
         variables: {
           senderId,
@@ -117,8 +117,7 @@ const Chatbox = ({ clientName, senderId, receiverId, eventId, userRole }) => {
           content: message.trim()
         }
       });
-
-      setMessage(''); // Clear the message input field after sending
+      setMessage(''); // Clear message field immediately after sending
     } catch (error) {
       console.error('Send message error:', error);
     }
@@ -133,13 +132,6 @@ const Chatbox = ({ clientName, senderId, receiverId, eventId, userRole }) => {
           const isCurrentUser = msg.senderModel === userRole;
           const messageTime = new Date(msg.timestamp);
   
-          // Add this check and log
-          if (msg.senderId === null || msg.senderId === undefined) {
-            console.error(`Message at index ${index} has no senderId:`, msg);
-          } else {
-            console.log(`Message at index ${index} has senderId:`, msg.senderId);
-          }
-  
           return (
             <div key={index} 
                  className={`flex flex-col ${isCurrentUser ? 'items-end' : 'items-start'}`}>
@@ -150,10 +142,6 @@ const Chatbox = ({ clientName, senderId, receiverId, eventId, userRole }) => {
                 <p className="text-xs opacity-50">
                   {messageTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </p>
-                {/* Optionally, you can display a warning in the UI if senderId is missing */}
-                {(msg.senderId === null || msg.senderId === undefined) && (
-                  <p className="text-xs text-red-500">Warning: No sender ID</p>
-                )}
               </div>
             </div>
           );
@@ -164,22 +152,21 @@ const Chatbox = ({ clientName, senderId, receiverId, eventId, userRole }) => {
   };
 
   if (!senderId || !receiverId || !eventId) {
-    return <p>Select a client and event to start chatting</p>;
+    return <p>Select an event to start chatting</p>;
   }
 
-  if (loading) {
-    console.log('Query is loading');
-    return <p>Loading messages...</p>;
-  }
+  if (loading) return <p>Loading messages...</p>;
+  if (error) return <p>Error loading messages: {error.message}</p>;
 
-  if (error) {
-    console.error('Query error:', error);
-    return <p>Error loading messages: {error.message}</p>;
-  }
+  // Get the appropriate name to display
+  const chatPartnerName = userRole === 'Client' 
+    ? plannerData?.planner?.name || 'Planner'
+    : clientName || 'Client';
+
   return (
     <Card className="flex flex-col h-[50vh]">
       <CardHeader>
-        <CardTitle>Chat with {clientName}</CardTitle>
+        <CardTitle>Chat with {chatPartnerName}</CardTitle>
       </CardHeader>
       <CardContent className="flex-1 overflow-y-auto">
         {renderMessages()}
@@ -210,4 +197,4 @@ const Chatbox = ({ clientName, senderId, receiverId, eventId, userRole }) => {
   );
 };
 
-export default Chatbox;
+export default ChatboxClient;

@@ -5,22 +5,6 @@ import mongoose from 'mongoose'; // You need mongoose here for connection state 
 
 const resolvers = {
   Query: {
-    hello: () => 'Hello world!',
-
-    testConnection: async () => {
-      try {
-        const connectionState = mongoose.connection.readyState;
-        if (connectionState === 1 || db) {
-          return "MongoDB connection successful";
-        } else {
-          console.error(`MongoDB connection is not in a ready state. Current state: ${connectionState}`);
-          throw new Error("Not connected");
-        }
-      } catch (err) {
-        console.error('Error connecting to MongoDB:', err);
-        return "Error connecting to MongoDB";
-      }
-    },
 
     me: async (parent, args, context) => {
       if (!context.user) throw new Error('Not authenticated');
@@ -39,16 +23,15 @@ const resolvers = {
           ]
         }).sort({ timestamp: 1 });
     
-        // Map the messages to match our schema
         return messages.map(msg => ({
           id: msg._id.toString(),
           content: msg.content,
           timestamp: msg.timestamp.toISOString(),
           senderModel: msg.senderModel,
-          senderId: msg.sender.toString(), // Convert ObjectId to string
-          receiverId: msg.receiver.toString(), // Convert ObjectId to string
+          senderId: msg.sender.toString(),
+          receiverId: msg.receiver.toString(),
           receiverModel: msg.receiverModel,
-          eventId: msg.event.toString() // Convert ObjectId to string
+          eventId: msg.event.toString()
         }));
       } catch (error) {
         console.error('Error in getMessages:', error);
@@ -58,6 +41,7 @@ const resolvers = {
     
     users: async () => await User.find(),
     user: async (parent, { id }) => User.findById(id),
+
     clients: async () => {
       const clients = await Client.find().populate('planner').populate('events');
       return clients.map(client => ({
@@ -100,6 +84,23 @@ const resolvers = {
         throw new Error('Failed to fetch event: ' + error.message);
       }
     },
+
+    planners: async () => {
+      try {
+        return await Planner.find().populate('events').populate('clients');
+      } catch (error) {
+        console.error('Error fetching planners:', error);
+        throw new Error('Failed to fetch planners: ' + error.message);
+      }
+    },
+    planner: async (parent, { id }) => {
+      try {
+        return await Planner.findById(id).populate('events').populate('clients');
+      } catch (error) {
+        console.error('Error fetching planner:', error);
+        throw new Error('Failed to fetch planner: ' + error.message);
+      }
+    }
   },
 
   Mutation: {
@@ -149,29 +150,26 @@ const resolvers = {
 
     createPlanner: async (parent, { name, email, password }) => {
       try {
-        // Check if a user with this email already exists
         const existingUser = await User.findOne({ email });
         if (existingUser) {
           throw new Error('User already exists');
         }
     
-        // Create a new user for the planner
         const user = new User({
           username: name,
           email,
           password, // Password is hashed by bcrypt in pre-save middleware
-          role: 'Planner', // Assign the role 'Planner'
+          role: 'Planner', 
         });
         const savedUser = await user.save();
     
-        // Create the planner and link it to the new user
         const planner = new Planner({
-          name, // Planner name (same as username)
-          user: savedUser._id, // Link planner to the user
+          name, 
+          clients: [],
+          events: []
         });
         const savedPlanner = await planner.save();
     
-        // Return both the newly created user and planner
         return {
           user: savedUser,
           planner: savedPlanner,
@@ -186,44 +184,10 @@ const resolvers = {
       try {
         console.log('Sending message with params:', { senderId, senderModel, receiverId, receiverModel, eventId });
     
-        let actualSenderId = senderId; // Keep the original senderId
-        let actualReceiverId = receiverId; // Keep the original receiverId
-    
-        // If sender is Client, just verify the client exists
-        if (senderModel === 'Client') {
-          const client = await Client.findOne({
-            $or: [
-              { _id: senderId },
-              { user: senderId }
-            ]
-          });
-    
-          if (!client) {
-            throw new Error('Sender client not found');
-          }
-          
-          console.log('Verified sender client:', client);
-        } else if (senderModel === 'Planner') {
-          // If sender is Planner, verify the planner exists
-          const planner = await Planner.findOne({
-            $or: [
-              { _id: senderId },
-              { user: senderId }
-            ]
-          });
-    
-          if (!planner) {
-            throw new Error('Sender planner not found');
-          }
-    
-          console.log('Verified sender planner:', planner);
-        }
-    
-        // Create and save the message
         const message = new Message({
-          sender: actualSenderId,
+          sender: senderId,
           senderModel,
-          receiver: actualReceiverId,
+          receiver: receiverId,
           receiverModel,
           event: eventId,
           content
@@ -241,35 +205,29 @@ const resolvers = {
 
     assignClientToPlannerAndEvent: async (parent, { clientId, plannerId, eventId }) => {
       try {
-        const client = await Client.findById(clientId).populate('planner').populate('events');
+        // Convert string IDs to ObjectId
+        const client = await Client.findById(clientId);
         if (!client) throw new Error('Client not found');
-
+    
         if (plannerId) {
-          const planner = await User.findById(plannerId);
+          const planner = await Planner.findById(plannerId);
           if (!planner) throw new Error('Planner not found');
           client.planner = plannerId;
         }
-
+    
         if (eventId) {
           const event = await Event.findById(eventId);
           if (!event) throw new Error('Event not found');
-          const eventExists = client.events.some(e => e.toString() === eventId);
-          if (!eventExists) {
+          if (!client.events.includes(eventId)) {
             client.events.push(eventId);
           }
         }
-
-        const savedClient = await client.save();
-        const populatedClient = await Client.findById(savedClient._id).populate('planner').populate('events');
-        return {
-          id: populatedClient._id.toString(),
-          name: populatedClient.name,
-          planner: populatedClient.planner ? { id: populatedClient.planner._id.toString(), username: populatedClient.planner.username } : null,
-          events: populatedClient.events.map(event => ({ id: event._id.toString(), name: event.name })),
-        };
+    
+        await client.save();
+        return client;
       } catch (error) {
-        console.error('Failed to assign client to planner and event:', error);
-        throw new Error('Failed to assign client to planner and event: ' + error.message);
+        console.error('Assignment error:', error);
+        throw new Error(`Failed to assign client: ${error.message}`);
       }
     },
 
@@ -349,7 +307,18 @@ const resolvers = {
   },
 
   Event: {
-    planner: async (event) => await User.findById(event.planner),
+    planner: async (event) => await Planner.findById(event.planner),  // Updated to use Planner
+    clients: async (event) => await Client.find({ _id: { $in: event.clients } }),
+  },
+
+  Planner: {
+    events: async (planner) => await Event.find({ planner: planner._id }),
+    clients: async (planner) => await Client.find({ planner: planner._id }),
+  },
+
+  Client: {
+    planner: async (client) => await Planner.findById(client.planner),  // Ensures planner details are fetched
+    events: async (client) => await Event.find({ _id: { $in: client.events } }),  // Fetch associated events
   },
 };
 

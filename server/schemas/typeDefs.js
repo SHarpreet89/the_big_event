@@ -63,7 +63,7 @@ const typeDefs = `
   type Client {
     id: ID!
     name: String!
-    planner: User
+    planner: Planner
     events: [Event]
     notes: [String]
     requestList: [Request]
@@ -89,7 +89,7 @@ const typeDefs = `
   startDate: String!
   endDate: String!
   location: String!
-  planner: Planner!  
+  planner: Planner
   clients: [Client!]! 
   createdAt: String
   completedAt: String
