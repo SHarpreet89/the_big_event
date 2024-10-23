@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import { FiMenu, FiHome, FiUsers, FiSettings, FiMessageSquare, FiCalendar } from 'react-icons/fi';
 import { gql, useQuery } from '@apollo/client';
 import Chatbox from './Chatbox';
+import client from '@/apolloClient';
 
 // Define the GraphQL query to fetch clients and events
 const GET_CLIENTS_AND_EVENTS = gql`
@@ -78,7 +79,9 @@ const Sidebar = ({ userRole: propUserRole, clientName, unreadMessages }) => {
   });
 
   // Get the senderId from the user object (assuming it's stored in localStorage)
-  const senderId = localStorage.getItem('userId'); // Replace with actual logic to get the user ID
+  const senderId = localStorage.getItem('userId');
+  const clientId = localStorage.getItem('clientId');
+  const plannerId = localStorage.getItem('plannerId');
 
   // Automatically set the client and planner when an event is selected for a client
   useEffect(() => {
@@ -208,35 +211,24 @@ const Sidebar = ({ userRole: propUserRole, clientName, unreadMessages }) => {
             <Chatbox
               clientName={selectedClient.name}
               userRole={userRole}
-              senderId={senderId}
-              receiverId={selectedClient.id} // Client ID for receiver
+              senderId={plannerId}
+              receiverId={selectedClient.id}
               eventId={selectedEvent.id}
             />
           )}
 
-          {/* Show Chatbox for Client when Event is selected (Planner deduced) */}
+          {/* Show Chatbox for Client when Event is selected */}
           {!isCollapsed && userRole === 'Client' && selectedEvent && planner && (
             <Chatbox
               clientName={clientName}
               userRole={userRole}
-              senderId={senderId}
-              receiverId={planner.id} // Deduced planner from the event
+              senderId={clientId}
+              receiverId={planner.id}
               eventId={selectedEvent.id}
             />
           )}
         </nav>
       </ScrollArea>
-
-      {userRole === 'Planner' && (
-        <div className="mt-auto">
-          <Link to="/PlannerSettings" className="flex items-center justify-center w-full h-16">
-            <Button variant="ghost" className="p-0 w-full h-full flex items-center justify-start">
-              <FiSettings style={{ width: 24, height: 24 }} className="mx-4" />
-              {!isCollapsed && <span>Settings</span>}
-            </Button>
-          </Link>
-        </div>
-      )}
     </div>
   );
 };

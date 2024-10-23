@@ -21,7 +21,7 @@ const eventSchema = new mongoose.Schema({
   },
   planner: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
+    ref: 'Planner',
   },
   clients: [{
     type: mongoose.Schema.Types.ObjectId,

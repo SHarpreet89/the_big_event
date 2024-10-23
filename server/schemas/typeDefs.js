@@ -17,17 +17,18 @@ const typeDefs = `
   type Message {
     id: ID!
     content: String!
-    senderId: ID! # You will save this to the database but will not expose this field when sending/receiving messages
-    senderModel: String! # Same for this field
-    receiverId: ID! # Saved but not exposed to the frontend
-    receiverModel: String! # Same for this field
-    eventId: ID! # Saved but not exposed
+    senderId: ID!
+    senderModel: String!
+    receiverId: ID!
+    receiverModel: String!
+    eventId: ID!
     timestamp: String!
   }
 
   type Mutation {
-    createUser(username: String!, email: String!, password: String!, role: String!): User
+     createUser(username: String!, email: String!, password: String!, role: String!): User
     createClient(name: String!, email: String!, phone: String, password: String!, plannerId: ID, eventId: ID): CreateClientResponse
+    createPlanner(name: String!, email: String!, password: String!): PlannerResponse!
     assignClientToPlannerAndEvent(clientId: ID!, plannerId: ID, eventId: ID): Client
     login(email: String!, password: String!): AuthPayload
     createEvent(
@@ -39,9 +40,6 @@ const typeDefs = `
       plannerId: ID,
       clientId: ID
     ): Event
-    createPlanner(name: String!): Planner!
-    
-    # Mutation that saves all info but only returns content and timestamp
     sendMessage(
       senderId: ID!,
       senderModel: String!,
@@ -84,18 +82,18 @@ const typeDefs = `
     actionedAt: String
   }
 
-  type Event {
-    id: ID!
-    name: String!
-    description: String
-    startDate: String!
-    endDate: String!
-    location: String!
-    planner: User
-    clients: [Client]
-    createdAt: String
-    completedAt: String
-  }
+ type Event {
+  id: ID!
+  name: String!
+  description: String
+  startDate: String!
+  endDate: String!
+  location: String!
+  planner: Planner!  
+  clients: [Client!]! 
+  createdAt: String
+  completedAt: String
+}
 
   type Planner {
     id: ID!
@@ -105,13 +103,20 @@ const typeDefs = `
   }
 
   type AuthPayload {
-    token: String!
-    user: User!
-  }
+  token: String!
+  user: User!
+  client: Client
+  planner: Planner
+}
 
   type CreateClientResponse {
     user: User
     client: Client
+  }
+  
+   type PlannerResponse {
+    user: User!
+    planner: Planner!
   }
 `;
 

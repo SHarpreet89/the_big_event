@@ -18,6 +18,14 @@ const LOGIN_MUTATION = gql`
         email
         role
       }
+      client {
+        id
+        name
+      }
+      planner {
+        id
+        name
+      }
     }
   }
 `;
@@ -32,7 +40,25 @@ function Login() {
 
   const navigate = useNavigate();
   const { setUserRole } = useOutletContext();
-  const [loginMutation, { loading }] = useMutation(LOGIN_MUTATION);
+  const [loginMutation, { loading }] = useMutation(LOGIN_MUTATION, {
+    onCompleted: (data) => {
+      localStorage.setItem('token', data.login.token);
+      localStorage.setItem('userId', data.login.user.id);
+      localStorage.setItem('userRole', data.login.user.role);
+      
+      if (data.login.client) {
+        localStorage.setItem('clientId', data.login.client.id);
+      } else if (data.login.planner) {
+        localStorage.setItem('plannerId', data.login.planner.id);
+      }
+
+      // Redirect or update state as needed
+    },
+    onError: (error) => {
+      console.error('Login error:', error);
+      // Handle error (e.g., show error message to user)
+    }
+  });
   const [error, setError] = React.useState(null);
 
   const onSubmit = async (data) => {

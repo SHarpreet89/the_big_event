@@ -29,22 +29,30 @@ const resolvers = {
 
     getMessages: async (parent, { plannerId, clientId, eventId }) => {
       try {
+        console.log('Fetching messages with params:', { plannerId, clientId, eventId });
+    
         const messages = await Message.find({
           event: eventId,
           $or: [
             { sender: plannerId, receiver: clientId },
             { sender: clientId, receiver: plannerId }
           ]
-        }).sort({ timestamp: 1 }).lean();
-
-        // Return only the content and timestamp fields for each message
+        }).sort({ timestamp: 1 });
+    
+        // Map the messages to match our schema
         return messages.map(msg => ({
+          id: msg._id.toString(),
           content: msg.content,
-          timestamp: msg.timestamp.toISOString(), // Convert Date object to string
+          timestamp: msg.timestamp.toISOString(),
+          senderModel: msg.senderModel,
+          senderId: msg.sender.toString(), // Convert ObjectId to string
+          receiverId: msg.receiver.toString(), // Convert ObjectId to string
+          receiverModel: msg.receiverModel,
+          eventId: msg.event.toString() // Convert ObjectId to string
         }));
       } catch (error) {
         console.error('Error in getMessages:', error);
-        throw new Error('Failed to fetch messages');
+        throw new Error('Failed to fetch messages: ' + error.message);
       }
     },
     
@@ -75,8 +83,23 @@ const resolvers = {
         actionedRequestList: client.actionedRequestList || []
       };
     },
-    events: async () => await Event.find().populate('planner'),
-    event: async (parent, { id }) => await Event.findById(id).populate('planner'),
+
+    events: async () => {
+      try {
+        return await Event.find().populate('planner').populate('clients');
+      } catch (error) {
+        console.error('Error fetching events:', error);
+        throw new Error('Failed to fetch events: ' + error.message);
+      }
+    },
+    event: async (parent, { id }) => {
+      try {
+        return await Event.findById(id).populate('planner').populate('clients');
+      } catch (error) {
+        console.error('Error fetching event:', error);
+        throw new Error('Failed to fetch event: ' + error.message);
+      }
+    },
   },
 
   Mutation: {
@@ -96,37 +119,123 @@ const resolvers = {
 
       return savedUser;
     },
+    
+    createClient: async (parent, { name, email, phone, password, plannerId, eventId }) => {
+      const existingUser = await User.findOne({ email });
+      if (existingUser) {
+        throw new Error('User already exists');
+      }
 
+      const user = new User({
+        username: name,
+        email,
+        password, // Pass raw password, bcrypt will handle hashing in the pre-save middleware
+        role: 'Client',
+      });
+      const savedUser = await user.save();
+
+      const client = new Client({
+        name,
+        planner: plannerId || null,
+        events: eventId ? [eventId] : [],
+      });
+      const savedClient = await client.save();
+
+      return {
+        user: savedUser,
+        client: savedClient,
+      };
+    },
+
+    createPlanner: async (parent, { name, email, password }) => {
+      try {
+        // Check if a user with this email already exists
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+          throw new Error('User already exists');
+        }
+    
+        // Create a new user for the planner
+        const user = new User({
+          username: name,
+          email,
+          password, // Password is hashed by bcrypt in pre-save middleware
+          role: 'Planner', // Assign the role 'Planner'
+        });
+        const savedUser = await user.save();
+    
+        // Create the planner and link it to the new user
+        const planner = new Planner({
+          name, // Planner name (same as username)
+          user: savedUser._id, // Link planner to the user
+        });
+        const savedPlanner = await planner.save();
+    
+        // Return both the newly created user and planner
+        return {
+          user: savedUser,
+          planner: savedPlanner,
+        };
+      } catch (error) {
+        console.error('Error creating planner:', error);
+        throw new Error('Failed to create planner: ' + error.message);
+      }
+    },
     
     sendMessage: async (parent, { senderId, senderModel, receiverId, receiverModel, eventId, content }) => {
       try {
-        // Validate that all required fields are present
-        if (!senderId || !senderModel || !receiverId || !receiverModel || !eventId || !content) {
-          throw new Error('Missing required fields');
+        console.log('Sending message with params:', { senderId, senderModel, receiverId, receiverModel, eventId });
+    
+        let actualSenderId = senderId; // Keep the original senderId
+        let actualReceiverId = receiverId; // Keep the original receiverId
+    
+        // If sender is Client, just verify the client exists
+        if (senderModel === 'Client') {
+          const client = await Client.findOne({
+            $or: [
+              { _id: senderId },
+              { user: senderId }
+            ]
+          });
+    
+          if (!client) {
+            throw new Error('Sender client not found');
+          }
+          
+          console.log('Verified sender client:', client);
+        } else if (senderModel === 'Planner') {
+          // If sender is Planner, verify the planner exists
+          const planner = await Planner.findOne({
+            $or: [
+              { _id: senderId },
+              { user: senderId }
+            ]
+          });
+    
+          if (!planner) {
+            throw new Error('Sender planner not found');
+          }
+    
+          console.log('Verified sender planner:', planner);
         }
-  
-        // Save the message in the database
+    
+        // Create and save the message
         const message = new Message({
-          sender: senderId,
-          senderModel: senderModel,
-          receiver: receiverId,
-          receiverModel: receiverModel,
+          sender: actualSenderId,
+          senderModel,
+          receiver: actualReceiverId,
+          receiverModel,
           event: eventId,
-          content,
-          timestamp: new Date() // Save the current timestamp
+          content
         });
-  
-        await message.save();
-        console.log('Message saved:', message);
-  
-        // Return only the content and timestamp to the frontend
-        return {
-          content: message.content,
-          timestamp: message.timestamp.toISOString() // Return timestamp as string
-        };
+    
+        const savedMessage = await message.save();
+        console.log('Message saved:', savedMessage);
+    
+        return savedMessage;
       } catch (error) {
-        console.error('Error in sendMessage:', error);
-        throw new Error('Failed to send message');
+        console.error('Error sending message:', error);
+        throw new Error('Failed to send message: ' + error.message);
       }
     },
 
@@ -165,35 +274,55 @@ const resolvers = {
     },
 
     login: async (parent, { email, password }) => {
-      const user = await authenticateUser(email, password);
-      const token = signToken(user);
-      return {
-        token,
-        user,
-      };
+      try {
+        console.log('Login attempt for email:', email);
+        const user = await authenticateUser(email, password);
+        console.log('User authenticated:', user);
+
+        let associatedEntity = null;
+        if (user.role === 'Client') {
+          associatedEntity = await Client.findOne({ name: user.username });
+          console.log('Associated Client:', associatedEntity);
+        } else if (user.role === 'Planner') {
+          associatedEntity = await Planner.findOne({ name: user.username });
+          console.log('Associated Planner:', associatedEntity);
+        }
+
+        if (!associatedEntity) {
+          console.warn(`No associated ${user.role} entity found for user:`, user.username);
+        }
+
+        const token = signToken(user);
+        console.log('Token generated for user');
+
+        return {
+          token,
+          user: {
+            ...user.toObject(),
+            id: user._id,
+          },
+          client: user.role === 'Client' ? associatedEntity : null,
+          planner: user.role === 'Planner' ? associatedEntity : null,
+        };
+      } catch (error) {
+        console.error('Login error:', error);
+        throw new AuthenticationError('Invalid email or password');
+      }
     },
 
     createEvent: async (parent, { name, description, startDate, endDate, location, plannerId, clientId }) => {
       try {
-        console.log('Creating event:', { name, description, startDate, endDate, location, plannerId, clientId });
-        const existingEvent = await Event.findOne({ name, description, startDate, endDate, location, planner: plannerId });
-        if (existingEvent) {
-          console.log('Event already exists:', existingEvent);
-          return existingEvent;
-        }
-
         const newEvent = new Event({
           name,
           description,
-          startDate: new Date(startDate),
-          endDate: new Date(endDate),
+          startDate,
+          endDate,
           location,
           planner: plannerId,
           clients: clientId ? [clientId] : [],
         });
 
         const savedEvent = await newEvent.save();
-
         const populatedEvent = await Event.findById(savedEvent._id).populate('planner').populate('clients');
 
         return populatedEvent;
@@ -205,9 +334,14 @@ const resolvers = {
   },
 
   Message: {
-    id: (parent) => parent._id.toString(),
-    receiverId: (parent) => parent.receiver ? parent.receiver.toString() : null,
-    senderId: (parent) => parent.sender ? parent.sender.toString() : null,
+    id: (parent) => parent.id,
+    senderId: (parent) => parent.senderId,
+    receiverId: (parent) => parent.receiverId,
+    eventId: (parent) => parent.eventId,
+    content: (parent) => parent.content,
+    timestamp: (parent) => parent.timestamp,
+    senderModel: (parent) => parent.senderModel,
+    receiverModel: (parent) => parent.receiverModel,
   },
 
   User: {
@@ -220,4 +354,3 @@ const resolvers = {
 };
 
 export default resolvers;
-
