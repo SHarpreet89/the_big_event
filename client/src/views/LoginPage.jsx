@@ -18,6 +18,14 @@ const LOGIN_MUTATION = gql`
         email
         role
       }
+      client {
+        id
+        name
+      }
+      planner {
+        id
+        name
+      }
     }
   }
 `;
@@ -32,7 +40,25 @@ function Login() {
 
   const navigate = useNavigate();
   const { setUserRole } = useOutletContext();
-  const [loginMutation, { loading }] = useMutation(LOGIN_MUTATION);
+  const [loginMutation, { loading }] = useMutation(LOGIN_MUTATION, {
+    onCompleted: (data) => {
+      localStorage.setItem('token', data.login.token);
+      localStorage.setItem('userId', data.login.user.id);
+      localStorage.setItem('userRole', data.login.user.role);
+      
+      if (data.login.client) {
+        localStorage.setItem('clientId', data.login.client.id);
+      } else if (data.login.planner) {
+        localStorage.setItem('plannerId', data.login.planner.id);
+      }
+
+      // Redirect or update state as needed
+    },
+    onError: (error) => {
+      console.error('Login error:', error);
+      // Handle error (e.g., show error message to user)
+    }
+  });
   const [error, setError] = React.useState(null);
 
   const onSubmit = async (data) => {
@@ -40,15 +66,17 @@ function Login() {
       const { data: loginData } = await loginMutation({
         variables: { email: data.email, password: data.password },
       });
-  
+
       const token = loginData.login.token;
       localStorage.setItem('token', token);
-  
-      const userRole = loginData.login.user.role;
+
+      const user = loginData.login.user;
+      const userRole = user.role;
       setUserRole(userRole);
       localStorage.setItem('userRole', userRole);
-  
-           if (userRole === 'Planner') {
+      localStorage.setItem('userId', user.id); // Save user ID to local storage
+
+      if (userRole === 'Planner') {
         navigate('/planner-dashboard');
       } else if (userRole === 'Client') {
         navigate('/client-dashboard');

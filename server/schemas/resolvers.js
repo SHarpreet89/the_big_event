@@ -1,5 +1,4 @@
-import { User, Client, Event, Planner } from '../models/models.js';
-import bcrypt from 'bcrypt';
+import { User, Client, Event, Planner, Message } from '../models/models.js';
 import { signToken, authenticateUser } from '../utils/auth.js';
 import { db } from '../config/connection.js';
 import mongoose from 'mongoose'; // You need mongoose here for connection state check
@@ -7,21 +6,20 @@ import mongoose from 'mongoose'; // You need mongoose here for connection state 
 const resolvers = {
   Query: {
     hello: () => 'Hello world!',
-    
+
     testConnection: async () => {
-        try {
-          // Check if the database connection is established
-          const connectionState = mongoose.connection.readyState;
-          if (connectionState === 1 || db) {
-            return "MongoDB connection successful";
-          } else {
-            console.error(`MongoDB connection is not in a ready state. Current state: ${connectionState}`);
-            throw new Error("Not connected");
-          }
-        } catch (err) {
-          console.error('Error connecting to MongoDB:', err);
-          return "Error connecting to MongoDB";
+      try {
+        const connectionState = mongoose.connection.readyState;
+        if (connectionState === 1 || db) {
+          return "MongoDB connection successful";
+        } else {
+          console.error(`MongoDB connection is not in a ready state. Current state: ${connectionState}`);
+          throw new Error("Not connected");
         }
+      } catch (err) {
+        console.error('Error connecting to MongoDB:', err);
+        return "Error connecting to MongoDB";
+      }
     },
 
     me: async (parent, args, context) => {
@@ -29,6 +27,35 @@ const resolvers = {
       return User.findById(context.user.id);
     },
 
+    getMessages: async (parent, { plannerId, clientId, eventId }) => {
+      try {
+        console.log('Fetching messages with params:', { plannerId, clientId, eventId });
+    
+        const messages = await Message.find({
+          event: eventId,
+          $or: [
+            { sender: plannerId, receiver: clientId },
+            { sender: clientId, receiver: plannerId }
+          ]
+        }).sort({ timestamp: 1 });
+    
+        // Map the messages to match our schema
+        return messages.map(msg => ({
+          id: msg._id.toString(),
+          content: msg.content,
+          timestamp: msg.timestamp.toISOString(),
+          senderModel: msg.senderModel,
+          senderId: msg.sender.toString(), // Convert ObjectId to string
+          receiverId: msg.receiver.toString(), // Convert ObjectId to string
+          receiverModel: msg.receiverModel,
+          eventId: msg.event.toString() // Convert ObjectId to string
+        }));
+      } catch (error) {
+        console.error('Error in getMessages:', error);
+        throw new Error('Failed to fetch messages: ' + error.message);
+      }
+    },
+    
     users: async () => await User.find(),
     user: async (parent, { id }) => User.findById(id),
     clients: async () => {
@@ -56,8 +83,23 @@ const resolvers = {
         actionedRequestList: client.actionedRequestList || []
       };
     },
-    events: async () => await Event.find().populate('planner'),
-    event: async (parent, { id }) => await Event.findById(id).populate('planner'),
+
+    events: async () => {
+      try {
+        return await Event.find().populate('planner').populate('clients');
+      } catch (error) {
+        console.error('Error fetching events:', error);
+        throw new Error('Failed to fetch events: ' + error.message);
+      }
+    },
+    event: async (parent, { id }) => {
+      try {
+        return await Event.findById(id).populate('planner').populate('clients');
+      } catch (error) {
+        console.error('Error fetching event:', error);
+        throw new Error('Failed to fetch event: ' + error.message);
+      }
+    },
   },
 
   Mutation: {
@@ -70,12 +112,11 @@ const resolvers = {
         password, // Pass raw password, bcrypt will handle hashing in the pre-save middleware
         role,
       });
-    
+
       const savedUser = await user.save();
-    
-      // Log the user creation success
+
       console.log('User created successfully:', savedUser);
-    
+
       return savedUser;
     },
     
@@ -105,7 +146,99 @@ const resolvers = {
         client: savedClient,
       };
     },
+
+    createPlanner: async (parent, { name, email, password }) => {
+      try {
+        // Check if a user with this email already exists
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+          throw new Error('User already exists');
+        }
     
+        // Create a new user for the planner
+        const user = new User({
+          username: name,
+          email,
+          password, // Password is hashed by bcrypt in pre-save middleware
+          role: 'Planner', // Assign the role 'Planner'
+        });
+        const savedUser = await user.save();
+    
+        // Create the planner and link it to the new user
+        const planner = new Planner({
+          name, // Planner name (same as username)
+          user: savedUser._id, // Link planner to the user
+        });
+        const savedPlanner = await planner.save();
+    
+        // Return both the newly created user and planner
+        return {
+          user: savedUser,
+          planner: savedPlanner,
+        };
+      } catch (error) {
+        console.error('Error creating planner:', error);
+        throw new Error('Failed to create planner: ' + error.message);
+      }
+    },
+    
+    sendMessage: async (parent, { senderId, senderModel, receiverId, receiverModel, eventId, content }) => {
+      try {
+        console.log('Sending message with params:', { senderId, senderModel, receiverId, receiverModel, eventId });
+    
+        let actualSenderId = senderId; // Keep the original senderId
+        let actualReceiverId = receiverId; // Keep the original receiverId
+    
+        // If sender is Client, just verify the client exists
+        if (senderModel === 'Client') {
+          const client = await Client.findOne({
+            $or: [
+              { _id: senderId },
+              { user: senderId }
+            ]
+          });
+    
+          if (!client) {
+            throw new Error('Sender client not found');
+          }
+          
+          console.log('Verified sender client:', client);
+        } else if (senderModel === 'Planner') {
+          // If sender is Planner, verify the planner exists
+          const planner = await Planner.findOne({
+            $or: [
+              { _id: senderId },
+              { user: senderId }
+            ]
+          });
+    
+          if (!planner) {
+            throw new Error('Sender planner not found');
+          }
+    
+          console.log('Verified sender planner:', planner);
+        }
+    
+        // Create and save the message
+        const message = new Message({
+          sender: actualSenderId,
+          senderModel,
+          receiver: actualReceiverId,
+          receiverModel,
+          event: eventId,
+          content
+        });
+    
+        const savedMessage = await message.save();
+        console.log('Message saved:', savedMessage);
+    
+        return savedMessage;
+      } catch (error) {
+        console.error('Error sending message:', error);
+        throw new Error('Failed to send message: ' + error.message);
+      }
+    },
+
     assignClientToPlannerAndEvent: async (parent, { clientId, plannerId, eventId }) => {
       try {
         const client = await Client.findById(clientId).populate('planner').populate('events');
@@ -139,41 +272,59 @@ const resolvers = {
         throw new Error('Failed to assign client to planner and event: ' + error.message);
       }
     },
-    
-    login: async (parent, { email, password }) => {
-      const user = await authenticateUser(email, password);
-      const token = signToken(user);
 
-      return {
-        token,
-        user,
-      };
+    login: async (parent, { email, password }) => {
+      try {
+        console.log('Login attempt for email:', email);
+        const user = await authenticateUser(email, password);
+        console.log('User authenticated:', user);
+
+        let associatedEntity = null;
+        if (user.role === 'Client') {
+          associatedEntity = await Client.findOne({ name: user.username });
+          console.log('Associated Client:', associatedEntity);
+        } else if (user.role === 'Planner') {
+          associatedEntity = await Planner.findOne({ name: user.username });
+          console.log('Associated Planner:', associatedEntity);
+        }
+
+        if (!associatedEntity) {
+          console.warn(`No associated ${user.role} entity found for user:`, user.username);
+        }
+
+        const token = signToken(user);
+        console.log('Token generated for user');
+
+        return {
+          token,
+          user: {
+            ...user.toObject(),
+            id: user._id,
+          },
+          client: user.role === 'Client' ? associatedEntity : null,
+          planner: user.role === 'Planner' ? associatedEntity : null,
+        };
+      } catch (error) {
+        console.error('Login error:', error);
+        throw new AuthenticationError('Invalid email or password');
+      }
     },
 
     createEvent: async (parent, { name, description, startDate, endDate, location, plannerId, clientId }) => {
       try {
-        console.log('Creating event:', { name, description, startDate, endDate, location, plannerId, clientId });
-
-        const existingEvent = await Event.findOne({ name, description, startDate, endDate, location, planner: plannerId });
-        if (existingEvent) {
-          console.log('Event already exists:', existingEvent);
-          return existingEvent;
-        }
-
         const newEvent = new Event({
           name,
           description,
-          startDate: new Date(startDate),
-          endDate: new Date(endDate),
+          startDate,
+          endDate,
           location,
           planner: plannerId,
           clients: clientId ? [clientId] : [],
         });
-    
+
         const savedEvent = await newEvent.save();
-        
         const populatedEvent = await Event.findById(savedEvent._id).populate('planner').populate('clients');
-        
+
         return populatedEvent;
       } catch (error) {
         console.error('Error creating event:', error);
@@ -181,11 +332,22 @@ const resolvers = {
       }
     },
   },
-  
+
+  Message: {
+    id: (parent) => parent.id,
+    senderId: (parent) => parent.senderId,
+    receiverId: (parent) => parent.receiverId,
+    eventId: (parent) => parent.eventId,
+    content: (parent) => parent.content,
+    timestamp: (parent) => parent.timestamp,
+    senderModel: (parent) => parent.senderModel,
+    receiverModel: (parent) => parent.receiverModel,
+  },
+
   User: {
     events: async (user) => await Event.find({ planner: user.id }),
   },
-  
+
   Event: {
     planner: async (event) => await User.findById(event.planner),
   },
