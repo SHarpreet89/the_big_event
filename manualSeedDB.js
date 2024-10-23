@@ -18,18 +18,18 @@ const seedDatabase = async () => {
     console.log('Existing users removed');
 
     // Create a planner user
-    const hashedPassword = await bcrypt.hash('plannerpassword123', 10);
+    const hashedPassword = await bcrypt.hash('adminpassword', 10);
     const plannerUser = {
-      username: 'plannerUser',
-      email: 'planner@example.com',
+      username: 'admin',
+      email: 'admin@example.com',
       password: hashedPassword,
-      role: 'Planner',
+      role: 'Admin',
       createdAt: new Date(),
       updatedAt: new Date()
     };
 
     await usersCollection.insertOne(plannerUser);
-    console.log('Planner user seeded successfully');
+    console.log('Admin user seeded successfully');
 
   } catch (error) {
     console.error('Error seeding database:', error);

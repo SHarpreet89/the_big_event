@@ -61,26 +61,41 @@ const clientSchema = new Schema({
 clientSchema.pre('save', async function(next) {
   if (this.isModified('planner')) {
     const Client = mongoose.model('Client');
-    
-    // Check if the new planner is already assigned to another client
-    const clientWithPlanner = await Client.findOne({ planner: this.planner });
-    
-    if (clientWithPlanner && clientWithPlanner._id.toString() !== this._id.toString()) {
-      // Swap planners
-      const oldPlanner = clientWithPlanner.planner;
-      clientWithPlanner.planner = this.planner;
-      this.planner = oldPlanner;
-      
-      await clientWithPlanner.save();
+    const Planner = mongoose.model('Planner');
+
+    // If this client already had a planner, remove this client from that planner's clients array
+    if (this._original && this._original.planner) {
+      await Planner.findByIdAndUpdate(this._original.planner, {
+        $pull: { clients: this._id }
+      });
     }
+
+    // Add this client to the new planner's clients array
+    if (this.planner) {
+      await Planner.findByIdAndUpdate(this.planner, {
+        $addToSet: { clients: this._id }
+      });
+    }
+
+    // Ensure no other client has this planner
+    await Client.updateMany(
+      { _id: { $ne: this._id }, planner: this.planner },
+      { $unset: { planner: 1 } }
+    );
   }
 
-  // New middleware to check for duplicate event assignments
+  // Check for duplicate event assignments
   if (this.isModified('events')) {
     const uniqueEvents = new Set(this.events.map(event => event.toString()));
     this.events = Array.from(uniqueEvents);
   }
 
+  next();
+});
+
+// Store the original state before any modifications
+clientSchema.pre('save', function(next) {
+  this._original = this.toObject();
   next();
 });
 
