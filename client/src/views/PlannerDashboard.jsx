@@ -5,7 +5,7 @@ import moment from 'moment';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import Carousel from 'react-multi-carousel';
 import 'react-multi-carousel/lib/styles.css';
-import EventCardWithMap from '../components/EventCardWithMap'; // Ensure correct import
+import EventCardWithMap from '../components/eventCardwithMap'; 
 import Timeline from '../components/Timeline';
 import './PlannerDashboard.css';
 
