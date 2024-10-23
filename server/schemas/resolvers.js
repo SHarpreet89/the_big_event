@@ -289,6 +289,86 @@ const resolvers = {
         throw new Error('Failed to create event: ' + error.message);
       }
     },
+
+    updateEvent: async (parent, { id, name, description, startDate, endDate, location, plannerId, clientId }) => {
+      try {
+        // First check if the event exists
+        const existingEvent = await Event.findById(id);
+        if (!existingEvent) {
+          throw new Error('Event not found');
+        }
+
+        // Prepare update object
+        const updateData = {
+          name,
+          description,
+          startDate,
+          endDate,
+          location
+        };
+
+        // Only update planner if provided
+        if (plannerId) {
+          const planner = await Planner.findById(plannerId);
+          if (!planner) {
+            throw new Error('Planner not found');
+          }
+          updateData.planner = plannerId;
+        }
+
+        // Only update clients if provided
+        if (clientId) {
+          const client = await Client.findById(clientId);
+          if (!client) {
+            throw new Error('Client not found');
+          }
+          // Add client to clients array if not already present
+          if (!existingEvent.clients.includes(clientId)) {
+            updateData.clients = [...existingEvent.clients, clientId];
+          }
+        }
+
+        // Update the event and return populated result
+        const updatedEvent = await Event.findByIdAndUpdate(
+          id,
+          updateData,
+          { new: true, runValidators: true }
+        ).populate('planner').populate('clients');
+
+        return updatedEvent;
+      } catch (error) {
+        console.error('Error updating event:', error);
+        throw new Error('Failed to update event: ' + error.message);
+      }
+    },
+
+    deleteEvent: async (parent, { id }) => {
+      try {
+        // First check if the event exists
+        const existingEvent = await Event.findById(id);
+        if (!existingEvent) {
+          throw new Error('Event not found');
+        }
+
+        // Remove event references from related clients
+        await Client.updateMany(
+          { events: id },
+          { $pull: { events: id } }
+        );
+
+        // Delete the event
+        await Event.findByIdAndDelete(id);
+
+        return {
+          id,
+          success: true
+        };
+      } catch (error) {
+        console.error('Error deleting event:', error);
+        throw new Error('Failed to delete event: ' + error.message);
+      }
+    },
+
   },
 
   Message: {

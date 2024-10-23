@@ -1,3 +1,4 @@
+/* Layout Styles */
 .PlannerDashboard {
   display: flex;
   flex-direction: column;
@@ -5,6 +6,7 @@
   padding: 10px;
 }
 
+/* Top Section */
 .PlannerDashboard .top-section {
   flex: 0 0 8vh;
   display: flex;
@@ -14,6 +16,13 @@
   margin-bottom: 10px;
 }
 
+.PlannerDashboard .top-section h1 {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #333;
+}
+
+/* Middle Section */
 .PlannerDashboard .middle-section {
   flex: 0 0 42vh;
   display: flex;
@@ -27,19 +36,15 @@
   overflow: auto;
 }
 
+/* Bottom Section */
 .PlannerDashboard .bottom-section {
   flex: 0 0 35vh;
   background-color: #f9f9f9;
   padding: 10px;
+  position: relative;
 }
 
-.carousel-item {
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  margin: 10px;
-}
-
+/* Event Popup */
 .EventPopup {
   position: fixed;
   top: 50%;
@@ -50,4 +55,131 @@
   border-radius: 5px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   z-index: 1000;
+}
+
+.leaflet-default-icon-path {
+  background-image: url(https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png);
+}
+
+.leaflet-default-shadow-path {
+  background-image: url(https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png);
+}
+
+.leaflet-control-container {
+  display: none;
+}
+
+/* Utility Classes */
+.relative {
+  position: relative !important;
+}
+
+.carousel-item {
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.carousel-container {
+  height: 100%;
+  padding: 0;
+}
+
+.react-multi-carousel-item {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  height: 100% !important;
+}
+
+.carousel-card {
+  height: 100% !important;
+  min-height: 400px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  background: white !important;
+  border-radius: 0.5rem !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06) !important;
+}
+
+.card-content {
+  flex: 1 1 auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  padding: 1rem !important;
+}
+
+/* Map container within card */
+.card-content .map-container {
+  flex: 1;
+  position: relative;
+  min-height: 160px;
+  margin-top: 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.375rem;
+  overflow: hidden;
+}
+
+/* Card Header */
+.carousel-card .card-header {
+  padding: 1rem 1rem 0.5rem 1rem !important;
+  border-bottom: 1px solid #e5e7eb !important;
+}
+
+/* Card Title */
+.carousel-card .card-title {
+  font-size: 1.125rem !important;
+  font-weight: 600 !important;
+  color: #111827 !important;
+  line-height: 1.5 !important;
+}
+
+/* Card Info Section */
+.info-section {
+  margin-bottom: 1rem;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0;
+  color: #4b5563;
+}
+
+/* Carousel Navigation */
+.react-multiple-carousel__arrow {
+  background: rgba(0, 0, 0, 0.5) !important;
+  z-index: 10 !important;
+}
+
+.react-multiple-carousel__arrow:hover {
+  background: rgba(0, 0, 0, 0.8) !important;
+}
+
+.react-multiple-carousel__arrow--left {
+  left: 0 !important;
+}
+
+.react-multiple-carousel__arrow--right {
+  right: 0 !important;
+}
+
+/* Carousel Item Padding */
+.carousel-item-padding-10-px {
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .carousel-card {
+    min-height: 350px !important;
+  }
+  
+  .card-content .map-container {
+    min-height: 140px;
+  }
 }

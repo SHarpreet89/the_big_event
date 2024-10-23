@@ -12,15 +12,13 @@ import Sidebar from './components/Sidebar';
 import { useState, useEffect } from 'react';
 import jwtDecode from 'jwt-decode';
 
-// Construct GraphQL API endpoint
 const httpLink = createHttpLink({
-  uri: '/graphql', // Make sure this is correct, try using 'http://localhost:4000/graphql' if needed
+  uri: '/graphql',
 });
 
-// Construct request middleware that will attach the JWT token to every request as an `authorization` header
 const authLink = setContext((_, { headers }) => {
   const token = localStorage.getItem('token');
-  console.log('Token:', token); // Debugging log to see if the token is retrieved
+  console.log('Token:', token);
   return {
     headers: {
       ...headers,
@@ -37,6 +35,16 @@ const client = new ApolloClient({
 function App() {
   const [userRole, setUserRole] = useState(null);
   const [loading, setLoading] = useState(true);
+  // Add shared state for showOnlyMyEvents
+  const [showOnlyMyEvents, setShowOnlyMyEvents] = useState(() => {
+    return localStorage.getItem('showOnlyMyEvents') === 'true';
+  });
+
+  // Handle the checkbox change
+  const handleShowOnlyMyEventsChange = (checked) => {
+    setShowOnlyMyEvents(checked);
+    localStorage.setItem('showOnlyMyEvents', checked);
+  };
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -55,18 +63,30 @@ function App() {
   }, []);
 
   if (loading) {
-    return <div>Loading...</div>; // Or a more sophisticated loading component
+    return <div>Loading...</div>;
   }
 
   return (
     <ApolloProvider client={client}>
       <div className="flex h-screen">
-        {userRole !== 'Admin' && <Sidebar userRole={userRole} />}
+        {userRole !== 'Admin' && (
+          <Sidebar 
+            userRole={userRole} 
+            showOnlyMyEvents={showOnlyMyEvents}
+            onShowOnlyMyEventsChange={handleShowOnlyMyEventsChange}
+          />
+        )}
         <div className="flex-1 flex flex-col overflow-hidden">
           <Navbar />
           <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-200">
             <div className="container mx-auto px-6 py-8">
-              <Outlet context={{ setUserRole }} />
+              <Outlet 
+                context={{ 
+                  setUserRole, 
+                  showOnlyMyEvents,
+                  onShowOnlyMyEventsChange: handleShowOnlyMyEventsChange 
+                }} 
+              />
             </div>
           </main>
         </div>

@@ -26,7 +26,7 @@ const typeDefs = `
   }
 
   type Mutation {
-     createUser(username: String!, email: String!, password: String!, role: String!): User
+    createUser(username: String!, email: String!, password: String!, role: String!): User
     createClient(name: String!, email: String!, phone: String, password: String!, plannerId: ID, eventId: ID): CreateClientResponse
     createPlanner(name: String!, email: String!, password: String!): PlannerResponse!
     assignClientToPlannerAndEvent(clientId: ID!, plannerId: ID, eventId: ID): Client
@@ -48,6 +48,23 @@ const typeDefs = `
       eventId: ID!,
       content: String!
     ): Message!
+    # Add these inside the Mutation type
+    updateEvent(
+      id: ID!
+      name: String!
+      description: String
+      startDate: String!
+      endDate: String!
+      location: String!
+      plannerId: ID
+      clientId: ID
+    ): Event
+    deleteEvent(id: ID!): DeleteEventResponse
+  }
+
+  type DeleteEventResponse {
+    id: ID!
+    success: Boolean!
   }
 
   type User {
@@ -82,18 +99,18 @@ const typeDefs = `
     actionedAt: String
   }
 
- type Event {
-  id: ID!
-  name: String!
-  description: String
-  startDate: String!
-  endDate: String!
-  location: String!
-  planner: Planner
-  clients: [Client!]! 
-  createdAt: String
-  completedAt: String
-}
+  type Event {
+    id: ID!
+    name: String!
+    description: String
+    startDate: String!
+    endDate: String!
+    location: String!
+    planner: Planner
+    clients: [Client!]! 
+    createdAt: String
+    completedAt: String
+  }
 
   type Planner {
     id: ID!
@@ -103,18 +120,18 @@ const typeDefs = `
   }
 
   type AuthPayload {
-  token: String!
-  user: User!
-  client: Client
-  planner: Planner
-}
+    token: String!
+    user: User!
+    client: Client
+    planner: Planner
+  }
 
   type CreateClientResponse {
     user: User
     client: Client
   }
   
-   type PlannerResponse {
+  type PlannerResponse {
     user: User!
     planner: Planner!
   }

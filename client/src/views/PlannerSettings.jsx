@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { gql, useMutation, useQuery } from '@apollo/client';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+import LocationPicker from '../components/LocationPicker';
 
 const CREATE_CLIENT_MUTATION = gql`
   mutation CreateClient($name: String!, $email: String!, $phone: String!, $password: String!, $plannerId: ID, $eventId: ID) {
@@ -36,8 +37,6 @@ const ASSIGN_CLIENT_MUTATION = gql`
     }
   }
 `;
-
-
 
 const CREATE_EVENT_MUTATION = gql`
   mutation CreateEvent($name: String!, $description: String, $startDate: String!, $endDate: String!, $location: String!, $plannerId: ID, $clientId: ID) {
@@ -95,6 +94,7 @@ const PlannerSettings = () => {
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
   const [eventLocation, setEventLocation] = useState('');
+  const [eventCoordinates, setEventCoordinates] = useState(null);
   const [createClient] = useMutation(CREATE_CLIENT_MUTATION);
   const [assignClient] = useMutation(ASSIGN_CLIENT_MUTATION);
   const [createEvent] = useMutation(CREATE_EVENT_MUTATION);
@@ -105,14 +105,18 @@ const PlannerSettings = () => {
 
   const onCreateEvent = async (data) => {
     try {
-      // Create the event
+      // Format location as either coordinates or address
+      const locationString = eventCoordinates 
+        ? `${eventCoordinates.lat},${eventCoordinates.lon}`
+        : eventLocation;
+
       const eventResponse = await createEvent({
         variables: {
           name: data.eventName,
           description: data.eventDescription || '',
           startDate: startDate ? startDate.toISOString() : '',
           endDate: endDate ? endDate.toISOString() : '',
-          location: eventLocation,
+          location: locationString,
           plannerId: data.plannerId || null,
           clientId: data.clientId || null,
         },
@@ -122,7 +126,6 @@ const PlannerSettings = () => {
       console.log('Create Event Response:', eventResponse.data.createEvent);
       setStatusMessage('Event created successfully!');
   
-      // If both planner and client are selected, assign the client to the planner and event
       if (data.plannerId && data.clientId) {
         try {
           const assignResponse = await assignClient({
@@ -146,7 +149,6 @@ const PlannerSettings = () => {
     }
   };
 
-
   const onCreateClient = async (data) => {
     try {
       const response = await createClient({
@@ -158,7 +160,7 @@ const PlannerSettings = () => {
           plannerId: data.plannerId || null,
           eventId: data.eventId || null,
         },
-        refetchQueries: [{ query: GET_CLIENTS }], // This will refetch the clients after mutation
+        refetchQueries: [{ query: GET_CLIENTS }],
       });
       console.log('Create Client Response:', response.data.createClient);
       setStatusMessage('Client created successfully!');
@@ -170,12 +172,10 @@ const PlannerSettings = () => {
 
   const onAssignClient = async (data) => {
     try {
-      // Ensure we're working with string IDs
       const clientId = String(data.clientId);
       const plannerId = data.plannerId ? String(data.plannerId) : null;
       const eventId = data.eventId ? String(data.eventId) : null;
 
-      // Log the data being sent
       console.log('Assigning client with data:', {
         clientId,
         plannerId,
@@ -198,7 +198,6 @@ const PlannerSettings = () => {
       console.log('Assignment successful:', response.data);
       setStatusMessage('Client assigned successfully!');
       
-      // Reset form after successful assignment
       setAssignValue('clientId', '');
       setAssignValue('plannerId', '');
       setAssignValue('eventId', '');
@@ -206,6 +205,11 @@ const PlannerSettings = () => {
       console.error('Error assigning client:', error);
       setStatusMessage(`Error: ${error.message}`);
     }
+  };
+
+  const handleEventSelect = (e) => {
+    const eventId = e.target.value;
+    setAssignValue('eventId', eventId);
   };
 
   useEffect(() => {
@@ -220,12 +224,6 @@ const PlannerSettings = () => {
     console.error('Error loading data:', { clientsError, plannersError, eventsError });
     return <p>Error loading data</p>;
   }
-
-  const handleEventSelect = (e) => {
-    const eventId = e.target.value;
-    setAssignValue('eventId', eventId);
-  };
-
 
   return (
     <div className="container mx-auto px-6 py-8">
@@ -298,43 +296,43 @@ const PlannerSettings = () => {
                 {...registerEvent('eventDescription')}
               />
             </div>
-                            {/* Date and Time Container */}
-                                <div className="mb-4 flex space-x-4">
-                                  {/* Start Date and Time */}
-                                  <div className="flex-1">
-                                    <label className="block text-sm font-medium mb-1">Start Date and Time</label>
-                                    <DatePicker
-                                      className="border p-2 w-full"
-                                      selected={startDate}
-                                      onChange={(date) => setStartDate(date)}
-                                      showTimeSelect
-                                      dateFormat="Pp"
-                                      placeholderText="Select a start date and time"
-                                    />
-                                  </div>
-                                
-                                  {/* End Date and Time */}
-                                  <div className="flex-1">
-                                    <label className="block text-sm font-medium mb-1">End Date and Time</label>
-                                    <DatePicker
-                                      className="border p-2 w-full"
-                                      selected={endDate}
-                                      onChange={(date) => setEndDate(date)}
-                                      showTimeSelect
-                                      dateFormat="Pp"
-                                      placeholderText="Select an end date and time"
-                                    />
-                                  </div>
-                                </div>                     
 
+            {/* Date and Time Container */}
+            <div className="mb-4 flex space-x-4">
+              <div className="flex-1">
+                <label className="block text-sm font-medium mb-1">Start Date and Time</label>
+                <DatePicker
+                  className="border p-2 w-full"
+                  selected={startDate}
+                  onChange={(date) => setStartDate(date)}
+                  showTimeSelect
+                  dateFormat="Pp"
+                  placeholderText="Select a start date and time"
+                />
+              </div>
+              
+              <div className="flex-1">
+                <label className="block text-sm font-medium mb-1">End Date and Time</label>
+                <DatePicker
+                  className="border p-2 w-full"
+                  selected={endDate}
+                  onChange={(date) => setEndDate(date)}
+                  showTimeSelect
+                  dateFormat="Pp"
+                  placeholderText="Select an end date and time"
+                />
+              </div>
+            </div>
+
+            {/* Location Picker */}
             <div className="mb-4">
               <label className="block text-sm font-medium">Event Location</label>
-              <input
-                className="border p-2 w-full"
-                type="text"
-                value={eventLocation}
-                onChange={(e) => setEventLocation(e.target.value)}
-                placeholder="Enter a location"
+              <LocationPicker
+                initialAddress={eventLocation}
+                onLocationSelect={({ coordinates, address }) => {
+                  setEventLocation(address);
+                  setEventCoordinates(coordinates);
+                }}
               />
             </div>
 
@@ -345,8 +343,8 @@ const PlannerSettings = () => {
                 {...registerEvent('plannerId')}
               >
                 <option value="">Select a planner</option>
-                {plannersData && plannersData.planners.map(planner => (  // Use the correct query for Planners
-                  <option key={planner.id} value={String(planner.id)}>{planner.name}</option>  // Use planner.id
+                {plannersData && plannersData.planners.map(planner => (
+                  <option key={planner.id} value={String(planner.id)}>{planner.name}</option>
                 ))}
                 {(!plannersData || plannersData.planners.length === 0) && (
                   <option value="">No Planners Available</option>
@@ -404,7 +402,7 @@ const PlannerSettings = () => {
             {assignErrors.clientId && <p className="text-red-500">{assignErrors.clientId.message}</p>}
           </div>
 
-       <div className="mb-4">
+          <div className="mb-4">
             <label className="block text-sm font-medium">Planner</label>
             <select
               className="border p-2 w-full"
@@ -412,7 +410,7 @@ const PlannerSettings = () => {
             >
               <option value="">Select a planner</option>
               {plannersData && plannersData.planners.map(planner => (
-                <option key={planner.id} value={String(planner.id)}>{planner.name}</option> // Ensure the value is a string
+                <option key={planner.id} value={String(planner.id)}>{planner.name}</option>
               ))}
               {(!plannersData || plannersData.planners.length === 0) && (
                 <option value="">No Planners Available</option>
@@ -433,6 +431,9 @@ const PlannerSettings = () => {
                   {event.name}
                 </option>
               ))}
+              {(!eventsData || eventsData.events.length === 0) && (
+                <option value="">No Events Available</option>
+              )}
             </select>
           </div>
 

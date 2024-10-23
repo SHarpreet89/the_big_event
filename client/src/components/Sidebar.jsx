@@ -6,10 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Link } from 'react-router-dom';
 import { FiMenu, FiHome, FiUsers, FiSettings, FiMessageSquare, FiCalendar } from 'react-icons/fi';
 import { gql, useQuery } from '@apollo/client';
-import { onError } from '@apollo/client/link/error';
 import Chatbox from './Chatbox';
 import ChatboxClient from './ChatboxClient';
-import client from '@/apolloClient';
 
 const GET_CLIENTS_AND_EVENTS = gql`
   query GetClientsAndEvents {
@@ -44,22 +42,17 @@ const GET_CLIENTS_AND_EVENTS = gql`
   }
 `;
 
-onError(({ graphQLErrors, networkError }) => {
-  if (graphQLErrors)
-    graphQLErrors.forEach(({ message, locations, path }) =>
-      console.log(
-        `[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`
-      )
-    );
-  if (networkError) console.log(`[Network error]: ${networkError}`);
-});
-
-const Sidebar = ({ userRole: propUserRole, clientName, unreadMessages }) => {
+const Sidebar = ({ 
+  userRole: propUserRole, 
+  clientName, 
+  unreadMessages,
+  showOnlyMyEvents,
+  onShowOnlyMyEventsChange 
+}) => {
   const [isCollapsed, setIsCollapsed] = useState(() => {
     const savedState = localStorage.getItem('sidebarCollapsed');
     return savedState === 'true';
   });
-  const [showOnlyMyEvents, setShowOnlyMyEvents] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [selectedClient, setSelectedClient] = useState(null);
   const [userRole, setUserRole] = useState(null);
@@ -92,11 +85,6 @@ const Sidebar = ({ userRole: propUserRole, clientName, unreadMessages }) => {
     skip: userRole !== 'Planner' && userRole !== 'Client',
     onCompleted: (data) => {
       console.log('Query completed successfully:', data);
-    },
-    onError: (error) => {
-      console.error('Error in useQuery:', error);
-      console.log('Error details:', error.graphQLErrors);
-      console.log('Network error:', error.networkError);
     }
   });
 
@@ -122,24 +110,19 @@ const Sidebar = ({ userRole: propUserRole, clientName, unreadMessages }) => {
     }
   }, [showOnlyMyEvents, selectedEvent, plannerId]);
 
-  // Filter events based on showOnlyMyEvents state or Client User login
   const getFilteredEvents = (events) => {
     if (!events) return [];
 
     if (userRole === 'Client') {
-      // Filter events for clients - only show events where the client is a participant
       return events.filter(event => 
         event?.clients?.some(client => client?.id === clientId)
       );
     } else if (userRole === 'Planner' && showOnlyMyEvents) {
-      // Filter events for planners when "Show only my events" is checked
       return events.filter(event => event?.planner?.id === plannerId);
     }
-    // Return all events for planners when not filtered
     return events;
   };
 
-  // Filter clients based on selected event
   const getFilteredClients = (clients, selectedEvent) => {
     if (!selectedEvent) {
       return clients;
@@ -150,27 +133,8 @@ const Sidebar = ({ userRole: propUserRole, clientName, unreadMessages }) => {
   };
 
   if (!userRole || !senderId) return null;
-
-  if (loading) {
-    console.log('Loading events and clients...');
-    return <p>Loading events and clients...</p>;
-  }
-
-  if (error) {
-    console.error('Error loading events and clients:', error);
-    return (
-      <div className="h-screen w-64 bg-gray-100 border-r flex flex-col">
-        <div className="flex items-center justify-center w-full h-16 border-b">
-          <Button variant="ghost" onClick={toggleSidebar} className="p-0 w-full h-full flex items-center justify-center">
-            <FiMenu style={{ width: 24, height: 24 }} />
-          </Button>
-        </div>
-        <ScrollArea className="flex-1 flex flex-col">
-          <p>Error loading events and clients</p>
-        </ScrollArea>
-      </div>
-    );
-  }
+  if (loading) return <p>Loading events and clients...</p>;
+  if (error) return <div>Error loading events and clients: {error.message}</div>;
 
   const { clients = [], events = [] } = data || {};
   const filteredEvents = getFilteredEvents(events);
@@ -315,7 +279,7 @@ const Sidebar = ({ userRole: propUserRole, clientName, unreadMessages }) => {
                 id="showMyEvents" 
                 checked={showOnlyMyEvents}
                 onCheckedChange={(checked) => {
-                  setShowOnlyMyEvents(checked);
+                  onShowOnlyMyEventsChange(checked);
                   if (checked && selectedEvent?.planner?.id !== plannerId) {
                     setSelectedEvent(null);
                   }
