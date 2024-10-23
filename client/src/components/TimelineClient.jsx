@@ -256,25 +256,69 @@ function EventPopup({ event, onClose, onUpdate, onDelete }) {
   );
 }
 
-function Timeline({ events, setEvents }) {
-  const [selectedEvent, setSelectedEvent] = useState(null);
+function TimelineClient({ events, setEvents, selectedEvent }) {
+  const [localSelectedEvent, setLocalSelectedEvent] = useState(null);
+  const [showEditPopup, setShowEditPopup] = useState(false);
   const calendarRef = useRef(null);
+  const isFromSidebarRef = useRef(false);
+
+  // Handle external selection (from sidebar)
+  useEffect(() => {
+    if (selectedEvent) {
+      console.log('Timeline received selected event:', selectedEvent);
+      setLocalSelectedEvent(selectedEvent);
+      isFromSidebarRef.current = true;
+      setShowEditPopup(false);
+      
+      // Scroll to the selected event's date
+      if (calendarRef.current) {
+        const calendarApi = calendarRef.current;
+        calendarApi.scrollTo(new Date(selectedEvent.startDate));
+      }
+    }
+  }, [selectedEvent]);
 
   const handleSelectEvent = useCallback((event) => {
-    setSelectedEvent(event);
+    setLocalSelectedEvent(event);
+    // Only show edit popup for direct calendar clicks
+    if (!isFromSidebarRef.current) {
+      setShowEditPopup(true);
+    }
+    isFromSidebarRef.current = false;
   }, []);
 
   const handleUpdateEvent = useCallback((updatedEvent) => {
     setEvents(prev => prev.map(ev => 
       ev.id === updatedEvent.id ? updatedEvent : ev
     ));
-    setSelectedEvent(null);
+    setLocalSelectedEvent(null);
+    setShowEditPopup(false);
   }, [setEvents]);
 
   const handleDeleteEvent = useCallback((eventId) => {
     setEvents(prev => prev.filter(ev => ev.id !== eventId));
-    setSelectedEvent(null);
+    setLocalSelectedEvent(null);
+    setShowEditPopup(false);
   }, [setEvents]);
+
+  // Custom event styling
+  const eventStyleGetter = useCallback((event) => {
+    const isSelected = selectedEvent?.id === event.id || localSelectedEvent?.id === event.id;
+    
+    return {
+      style: {
+        backgroundColor: isSelected ? '#3b82f6' : '#60a5fa',
+        border: isSelected ? '2px solid #1d4ed8' : 'none',
+        borderRadius: '4px',
+        color: 'white',
+        padding: '2px 4px',
+        fontWeight: isSelected ? 'bold' : 'normal',
+        transform: isSelected ? 'scale(1.02)' : 'none',
+        transition: 'all 0.2s ease',
+        cursor: 'pointer'
+      }
+    };
+  }, [selectedEvent, localSelectedEvent]);
 
   return (
     <div ref={calendarRef} style={{ flex: 1, overflow: 'auto' }} className="bg-yellow-50">
@@ -283,18 +327,19 @@ function Timeline({ events, setEvents }) {
         events={events}
         startAccessor="start"
         endAccessor="end"
-        style={{ height: '100%' }}
+        style={{ height: '50vh', minHeight: '400px' }}
         selectable
         onSelectEvent={handleSelectEvent}
+        eventPropGetter={eventStyleGetter}
         views={['month', 'week', 'day', 'agenda']}
         components={{
           week: {
             event: ({ event }) => (
-              <div className="p-1">
+              <div className={`p-1 ${selectedEvent?.id === event.id ? 'ring-2 ring-blue-600' : ''}`}>
                 <strong>{event.title}</strong>
-                <p className="text-xs text-gray-600">{moment(event.start).format('h:mm a')} - {moment(event.end).format('h:mm a')}</p>
+                <p className="text-xs text-gray-100">{moment(event.start).format('h:mm a')} - {moment(event.end).format('h:mm a')}</p>
                 {event.location && (
-                  <p className="text-xs text-gray-600 flex items-center gap-1">
+                  <p className="text-xs text-gray-100 flex items-center gap-1">
                     <MapPin size={12} />
                     {event.location}
                   </p>
@@ -304,11 +349,11 @@ function Timeline({ events, setEvents }) {
           },
           day: {
             event: ({ event }) => (
-              <div className="p-1">
+              <div className={`p-1 ${selectedEvent?.id === event.id ? 'ring-2 ring-blue-600' : ''}`}>
                 <strong>{event.title}</strong>
-                <p className="text-xs text-gray-600">{moment(event.start).format('h:mm a')} - {moment(event.end).format('h:mm a')}</p>
+                <p className="text-xs text-gray-100">{moment(event.start).format('h:mm a')} - {moment(event.end).format('h:mm a')}</p>
                 {event.location && (
-                  <p className="text-xs text-gray-600 flex items-center gap-1">
+                  <p className="text-xs text-gray-100 flex items-center gap-1">
                     <MapPin size={12} />
                     {event.location}
                   </p>
@@ -318,7 +363,7 @@ function Timeline({ events, setEvents }) {
           },
           agenda: {
             event: ({ event }) => (
-              <div className="p-1">
+              <div className={`p-1 ${selectedEvent?.id === event.id ? 'ring-2 ring-blue-600' : ''}`}>
                 <strong>{event.title}</strong>
                 <p className="text-xs text-gray-600">
                   {moment(event.start).format('MMMM Do YYYY, h:mm a')} - {moment(event.end).format('h:mm a')}
@@ -334,10 +379,13 @@ function Timeline({ events, setEvents }) {
           },
         }}
       />
-      {selectedEvent && (
+      {showEditPopup && localSelectedEvent && (
         <EventPopup 
-          event={selectedEvent}
-          onClose={() => setSelectedEvent(null)}
+          event={localSelectedEvent}
+          onClose={() => {
+            setShowEditPopup(false);
+            setLocalSelectedEvent(null);
+          }}
           onUpdate={handleUpdateEvent}
           onDelete={handleDeleteEvent}
         />
@@ -346,4 +394,4 @@ function Timeline({ events, setEvents }) {
   );
 }
 
-export default Timeline;
+export default TimelineClient;

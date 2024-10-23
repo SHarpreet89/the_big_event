@@ -38,5 +38,27 @@ const messageSchema = new Schema({
   }
 });
 
+// Pre-save hook to check for duplicate messages within one minute
+messageSchema.pre('save', async function (next) {
+  const message = this;
+  const oneMinuteAgo = new Date(message.timestamp.getTime() - 60000); // 60000 ms = 1 minute
+
+  try {
+    const existingMessage = await Message.findOne({
+      content: message.content,
+      timestamp: { $gte: oneMinuteAgo, $lte: message.timestamp }
+    });
+
+    if (existingMessage) {
+      const error = new Error('Duplicate message detected within one minute');
+      return next(error);
+    }
+
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
+
 const Message = mongoose.model('Message', messageSchema);
 export default Message;

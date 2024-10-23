@@ -27,7 +27,9 @@
     "mongoose": "^8.7.2",
     "react-big-calendar": "^1.15.0",
     "react-datepicker": "^7.5.0",
-    "react-multi-carousel": "^2.8.5"
+    "react-multi-carousel": "^2.8.5",
+    "leaflet": "^1.9.4",
+    "mapbox-gl": "^3.7.0"
   },
   "devDependencies": {
     "cross-env": "^7.0.3",
