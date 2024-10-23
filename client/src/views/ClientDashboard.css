@@ -1,49 +1,59 @@
+.timeline-container {
+  height: auto; /* Set height to 40% of the viewport */
+  overflow: hidden; /* Prevent overflow issues */
+}
+
+.timeline-container .rbc-calendar {
+  height: 100%; /* Ensure the timeline component takes up the full height */
+}
+
+.timeline-container .rbc-time-view {
+  height: 100%; /* Consistent height for time-based views */
+}
+
 /* Layout Styles */
-.PlannerDashboard {
+.ClientDashboard {
   display: flex;
   flex-direction: column;
-  height: 85vh;
+  height: 100vh;
+  padding: 10px;
 }
 
 /* Top Section */
-.PlannerDashboard .top-section {
-  height: 10vh !important;
-  flex: 0 0 2vh;
+.ClientDashboard .top-section {
+  flex: 0 0 8vh;
   display: flex;
   align-items: center;
   justify-content: center;
   background-color: #f0f0f0;
   margin-bottom: 10px;
-  padding: 10px; /* Add padding */
-  border-radius: 10px; /* Add rounded corners */
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3); /* Add drop shadow */
 }
 
-.PlannerDashboard .top-section h1 {
+.ClientDashboard .top-section h1 {
   font-size: 1.5rem;
   font-weight: bold;
   color: #333;
 }
 
 /* Middle Section */
-.PlannerDashboard .middle-section {
+.ClientDashboard .middle-section {
   flex: 0 0 42vh;
   display: flex;
   flex-direction: column;
-  background-color: #f0f0f0;
   overflow: hidden;
   margin-bottom: 10px;
-  padding: 20px; /* Add padding */
-  border-radius: 10px; /* Add rounded corners */
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3); /* Add drop shadow */
+}
+
+.ClientDashboard .middle-section .calendar-container {
+  flex: 1;
+  overflow: auto;
 }
 
 /* Bottom Section */
-.PlannerDashboard .bottom-section {
-  flex: 0 0 25vh;
+.ClientDashboard .bottom-section {
+  flex: 0 0 35vh;
   background-color: #f9f9f9;
-  border-radius: 10px; /* Add rounded corners */
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3); /* Add drop shadow */
+  padding: 10px;
   position: relative;
 }
 

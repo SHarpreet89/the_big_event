@@ -51,7 +51,7 @@ function App() {
     if (token) {
       try {
         const decodedToken = jwtDecode(token);
-        console.log('Decoded Token:', decodedToken);
+        //console.log('Decoded Token:', decodedToken);
         setUserRole(decodedToken.role);
       } catch (error) {
         console.error('Error decoding token:', error);

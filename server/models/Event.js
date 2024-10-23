@@ -1,5 +1,20 @@
 import mongoose from 'mongoose';
 
+const subeventSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true,
+  },
+  startDate: {
+    type: Date,
+    required: true,
+  },
+  endDate: {
+    type: Date,
+    required: true,
+  },
+});
+
 const eventSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -8,7 +23,7 @@ const eventSchema = new mongoose.Schema({
   description: {
     type: String,
   },
-  startDate: { // Update to startDate
+  startDate: {
     type: Date,
     required: true,
   },
@@ -27,6 +42,7 @@ const eventSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Client',
   }],
+  subevents: [subeventSchema], // Add subevents field
   createdAt: {
     type: Date,
     default: Date.now,

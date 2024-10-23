@@ -71,21 +71,21 @@ const Sidebar = ({
   const { loading, error, data } = useQuery(GET_CLIENTS_AND_EVENTS, {
     skip: userRole !== 'Planner' && userRole !== 'Client',
     onCompleted: (data) => {
-      console.log('Query completed successfully:', data);
+      //console.log('Query completed successfully:', data);
     }
   });
 
   // Debug current state
-  useEffect(() => {
-    console.log('Current render state:', {
-      selectedEvent,
-      planner,
-      userRole,
-      isChatVisible,
-      clientId,
-      clientName
-    });
-  }, [selectedEvent, planner, userRole, isChatVisible, clientId, clientName]);
+  // useEffect(() => {
+  //   console.log('Current render state:', {
+  //     selectedEvent,
+  //     planner,
+  //     userRole,
+  //     isChatVisible,
+  //     clientId,
+  //     clientName
+  //   });
+  // }, [selectedEvent, planner, userRole, isChatVisible, clientId, clientName]);
 
   useEffect(() => {
     const storedUserRole = localStorage.getItem('userRole');
@@ -100,28 +100,27 @@ const Sidebar = ({
 
   // Event selection handler
   const handleEventSelection = (event) => {
-    console.log('Event selection initiated:', event);
-    
     setSelectedEvent(event);
     setIsChatVisible(false);
-    
+  
+    // This block is only for clients
     if (userRole === 'Client' && event?.planner) {
-      console.log('Setting up chat for event:', event.name);
       setPlanner(event.planner);
       setSelectedClient({ id: clientId, name: clientName });
-      // Short delay to ensure states are updated
+  
       setTimeout(() => {
         setIsChatVisible(true);
-        console.log('Chat visibility enabled for event:', event.name);
       }, 100);
     }
+  
+    // Dispatch event for dashboard update
+    window.dispatchEvent(new CustomEvent('eventSelected', { detail: event }));
   };
-
   // Client selection handler (for planners)
   const handleClientSelection = (client) => {
     setSelectedClient(client);
     setIsChatVisible(true);
-    console.log('Selected client for chat:', client.name);
+    //console.log('Selected client for chat:', client.name);
   };
 
   useEffect(() => {
@@ -132,7 +131,7 @@ const Sidebar = ({
         filtered = filtered.filter(event => 
           event?.clients?.some(client => client?.id === clientId)
         );
-        console.log('Filtered client events:', filtered);
+        //console.log('Filtered client events:', filtered);
       } else if (userRole === 'Planner' && showOnlyMyEvents) {
         filtered = filtered.filter(event => event?.planner?.id === plannerId);
       }
@@ -159,16 +158,16 @@ const Sidebar = ({
   // Chat render function with debug logging
   const renderChat = () => {
     if (isCollapsed || !isChatVisible) {
-      console.log('Chat hidden due to:', { isCollapsed, isChatVisible });
+      //console.log('Chat hidden due to:', { isCollapsed, isChatVisible });
       return null;
     }
 
     if (userRole === 'Client' && selectedEvent && planner) {
-      console.log('Rendering client chat with:', {
-        eventId: selectedEvent.id,
-        plannerId: planner.id,
-        clientId
-      });
+      // console.log('Rendering client chat with:', {
+      //   eventId: selectedEvent.id,
+      //   plannerId: planner.id,
+      //   clientId
+      // });
 
       return (
         <div className="px-4 py-3 bg-white rounded-lg shadow-lg">

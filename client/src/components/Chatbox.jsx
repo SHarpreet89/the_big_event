@@ -42,17 +42,17 @@ const SEND_MESSAGE = gql`
 `;
 
 const Chatbox = ({ clientName, senderId, receiverId, eventId, userRole }) => {
-  console.log('Chatbox component rendering with props:', { clientName, senderId, receiverId, eventId, userRole });
+  // console.log('Chatbox component rendering with props:', { clientName, senderId, receiverId, eventId, userRole });
 
   const [message, setMessage] = useState('');
   const messagesEndRef = useRef(null);
 
-  console.log('Chatbox initialized with:', {
-    senderId,
-    receiverId,
-    eventId,
-    userRole
-  });
+  // console.log('Chatbox initialized with:', {
+  //   senderId,
+  //   receiverId,
+  //   eventId,
+  //   userRole
+  // });
 
   // Query Messages
   const { loading, error, data, refetch } = useQuery(GET_MESSAGES, {

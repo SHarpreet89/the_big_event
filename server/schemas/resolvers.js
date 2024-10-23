@@ -13,7 +13,7 @@ const resolvers = {
 
     getMessages: async (parent, { plannerId, clientId, eventId }) => {
       try {
-        console.log('Fetching messages with params:', { plannerId, clientId, eventId });
+        // console.log('Fetching messages with params:', { plannerId, clientId, eventId });
     
         const messages = await Message.find({
           event: eventId,
@@ -38,6 +38,7 @@ const resolvers = {
         throw new Error('Failed to fetch messages: ' + error.message);
       }
     },
+    
     
     users: async () => await User.find(),
     user: async (parent, { id }) => User.findById(id),
@@ -146,6 +147,35 @@ const resolvers = {
         user: savedUser,
         client: savedClient,
       };
+    },
+
+    addClientNote: async (parent, { clientId, note }) => {
+      try {
+        const client = await Client.findById(clientId);
+        if (!client) throw new Error('Client not found');
+        
+        client.notes.push(note);
+        await client.save();
+        
+        return client;
+      } catch (error) {
+        throw new Error(`Failed to add note: ${error.message}`);
+      }
+    },
+  
+    updateClientNotes: async (parent, { clientId, notes }) => {
+      try {
+        const client = await Client.findByIdAndUpdate(
+          clientId,
+          { notes },
+          { new: true }
+        );
+        if (!client) throw new Error('Client not found');
+        
+        return client;
+      } catch (error) {
+        throw new Error(`Failed to update notes: ${error.message}`);
+      }
     },
 
     createPlanner: async (parent, { name, email, password }) => {
@@ -389,6 +419,7 @@ const resolvers = {
   Event: {
     planner: async (event) => await Planner.findById(event.planner),  // Updated to use Planner
     clients: async (event) => await Client.find({ _id: { $in: event.clients } }),
+    subevents: (event) => event.subevents,  
   },
 
   Planner: {
