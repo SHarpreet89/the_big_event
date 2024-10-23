@@ -2,24 +2,6 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { gql, useMutation } from '@apollo/client';
 
-// Updated mutation to create both user and planner in one step
-const CREATE_PLANNER_MUTATION = gql`
-  mutation CreatePlanner($name: String!, $email: String!, $password: String!) {
-    createPlanner(name: $name, email: $email, password: $password) {
-      user {
-        id
-        username
-        email
-        role
-      }
-      planner {
-        id
-        name
-      }
-    }
-  }
-`;
-
 const CREATE_USER_MUTATION = gql`
   mutation CreateUser($username: String!, $email: String!, $password: String!, $role: String!) {
     createUser(username: $username, email: $email, password: $password, role: $role) {
@@ -34,36 +16,20 @@ const CREATE_USER_MUTATION = gql`
 const AdminPage = () => {
   const { register, handleSubmit, formState: { errors } } = useForm();
   const [createUser] = useMutation(CREATE_USER_MUTATION);
-  const [createPlanner] = useMutation(CREATE_PLANNER_MUTATION);
   const [statusMessage, setStatusMessage] = useState('');
 
   const onCreateUser = async (data) => {
     try {
-      if (data.role === 'Planner') {
-        // Create both user and planner in one step
-        const plannerResponse = await createPlanner({
-          variables: {
-            name: data.username,
-            email: data.email,
-            password: data.password,
-          },
-        });
-        console.log('Planner created:', plannerResponse.data.createPlanner);
-        setStatusMessage('Planner and user created successfully!');
-      } else {
-        // Create only the user (Admin)
-        const userResponse = await createUser({
-          variables: {
-            username: data.username,
-            email: data.email,
-            password: data.password,
-            role: data.role,
-          },
-        });
-        const createdUser = userResponse.data.createUser;
-        console.log('Admin user created:', createdUser);
-        setStatusMessage('Admin user created successfully!');
-      }
+      const response = await createUser({
+        variables: {
+          username: data.username,
+          email: data.email,
+          password: data.password,
+          role: data.role,
+        },
+      });
+      console.log('Create User Response:', response.data.createUser);
+      setStatusMessage('User created successfully!');
     } catch (error) {
       console.error('Error creating user:', error);
       setStatusMessage(`Error: ${error.message}`);
