@@ -292,17 +292,17 @@ const PlannerSettings = () => {
             <div className="mb-4">
               <label className="block text-sm font-medium">Planner</label>
               <select
-                  className="border p-2 w-full"
-                  {...registerEvent('plannerId')}
-                >
-                  <option value="">Select a planner</option>
-                  {plannersData && plannersData.planners.map(planner => (  // Use the correct query for Planners
-                    <option key={planner.id} value={String(planner.id)}>{planner.name}</option>  // Use planner.id
-                  ))}
-                  {(!plannersData || plannersData.planners.length === 0) && (
-                    <option value="">No Planners Available</option>
-                  )}
-                </select>
+                className="border p-2 w-full"
+                {...registerEvent('plannerId')} // Fixed register to registerEvent for planner
+              >
+                <option value="">Select a planner</option>
+                {plannersData && plannersData.users.filter(user => user.role === 'Planner').map(planner => (
+                  <option key={planner.id} value={String(planner.id)}>{planner.username}</option> // Ensure the value is a string
+                ))}
+                {(!plannersData || plannersData.users.filter(user => user.role === 'Planner').length === 0) && (
+                  <option value="">No Planners Available</option>
+                )}
+              </select>
             </div>
 
             <div className="mb-4">
@@ -312,8 +312,8 @@ const PlannerSettings = () => {
                 {...registerEvent('clientId')}
               >
                 <option value="">Select a client</option>
-                {clientsData && clientsData.clients.map(client => (  // Use the correct query for Clients
-                  <option key={client.id} value={client.id}>{client.name}</option>  // Use client.id
+                {clientsData && clientsData.clients.map(client => (
+                  <option key={client.id} value={client.id}>{client.name}</option>
                 ))}
                 {(!clientsData || clientsData.clients.length === 0) && (
                   <option value="">No Clients Available</option>
