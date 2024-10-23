@@ -118,24 +118,25 @@ function PlannerDashboard() {
     responsive: {
       superLargeDesktop: {
         breakpoint: { max: 4000, min: 3000 },
-        items: Math.min(10, filteredEvents.length) // Adjust to show more items
+        items: Math.min(3, filteredEvents.length)
       },
       desktop: {
         breakpoint: { max: 3000, min: 1024 },
-        items: Math.min(10, filteredEvents.length) // Adjust to show more items
+        items: Math.min(3, filteredEvents.length)
       },
       tablet: {
         breakpoint: { max: 1024, min: 464 },
-        items: Math.min(5, filteredEvents.length) // Adjust to show more items
+        items: Math.min(2, filteredEvents.length)
       },
       mobile: {
         breakpoint: { max: 464, min: 0 },
-        items: Math.min(3, filteredEvents.length) // Adjust to show more items
+        items: 1
       }
     },
-    infinite: filteredEvents.length > 2,
-    itemClass: 'carousel-item-padding-10-px', // Adjust padding
-    containerClass: 'carousel-container', // Add this line
+    infinite: filteredEvents.length > 3,
+    centerMode: filteredEvents.length <= 3,
+    itemClass: 'carousel-item-padding',
+    containerClass: 'carousel-container',
   };
 
   const carouselItems = filteredEvents.map(event => (
@@ -167,9 +168,6 @@ function PlannerDashboard() {
               additionalTransfrom={0}
               arrows
               autoPlaySpeed={3000}
-              centerMode={false}
-              className="py-4"
-              containerClass="container-with-dots"
               draggable
               focusOnSelect={false}
               keyBoardControl
