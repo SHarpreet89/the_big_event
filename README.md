@@ -27,6 +27,16 @@ So that I can manage my time and execute a successful event
 
 [Visit the live site deployed on Render here.](https://the-big-event-mymo.onrender.com/)
 
+To login and use the site, use the below details;
+
+Admin login details: 
+admin@example.com
+adminpassword
+
+Planner login details: 
+planner@test.com
+password
+
 ## Technologies Used
 
 - HTML
